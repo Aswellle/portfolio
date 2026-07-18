@@ -1,17 +1,17 @@
 ---
 ---
 
-<section class="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden gradient-bg">
+<section class="relative min-h-dvh flex flex-col items-center justify-center px-5 overflow-hidden gradient-bg">
   <!-- Decorative blobs (subtle, light mode) -->
   <div aria-hidden="true" class="absolute inset-0 pointer-events-none overflow-hidden">
-    <div class="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full
+    <div class="absolute -top-16 -right-16 w-[280px] h-[280px] sm:w-[600px] sm:h-[600px] rounded-full
                 bg-gradient-to-br from-blue-100 to-violet-100 opacity-60 blur-3xl animate-float"></div>
-    <div class="absolute -bottom-24 -left-24 w-[500px] h-[500px] rounded-full
+    <div class="absolute -bottom-12 -left-12 w-[240px] h-[240px] sm:w-[500px] sm:h-[500px] rounded-full
                 bg-gradient-to-tr from-cyan-100 to-blue-100 opacity-50 blur-3xl animate-float"
          style="animation-delay:3s"></div>
   </div>
 
-  <div class="relative z-10 text-center max-w-3xl mx-auto pt-20">
+  <div class="relative z-10 text-center max-w-3xl mx-auto pt-16 sm:pt-20 px-1">
     <!-- 状态标签 -->
     <div class="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full
                 bg-white border border-border shadow-card text-sm text-text-muted
@@ -21,13 +21,13 @@
     </div>
 
     <!-- 主标题 -->
-    <h1 class="text-5xl sm:text-7xl font-bold leading-[1.1] tracking-tight animate-fade-up"
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight animate-fade-up"
         style="animation-delay:0.1s">
       <span class="text-text">你好，我是</span><br/>
       <span class="gradient-text">Aswellle</span>
     </h1>
 
-    <p class="mt-5 text-xl sm:text-2xl text-text-secondary font-light animate-fade-up"
+    <p class="mt-4 text-base sm:text-xl lg:text-2xl text-text-secondary font-light animate-fade-up"
        style="animation-delay:0.2s">
       独立开发者 · 开源爱好者 · AI 工具构建者
     </p>
@@ -38,27 +38,25 @@
     </p>
 
     <!-- CTA 按钮 -->
-    <div class="mt-10 flex flex-wrap items-center justify-center gap-4 animate-fade-up"
+    <div class="mt-8 sm:mt-10 flex flex-col xs:flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 animate-fade-up"
          style="animation-delay:0.4s">
       <a href="#projects"
-         class="px-7 py-3 rounded-2xl text-sm font-semibold text-white
+         class="w-full xs:w-auto px-7 py-3.5 rounded-2xl text-sm font-semibold text-white
                 bg-gradient-to-r from-accent to-accent-purple
-                shadow-lg shadow-blue-200
-                hover:shadow-blue-300 hover:-translate-y-0.5
-                transition-all duration-200">
+                shadow-lg shadow-blue-200 min-h-[48px] flex items-center justify-center
+                active:scale-95 transition-all duration-200">
         浏览我的项目
       </a>
       <a href="#about"
-         class="px-7 py-3 rounded-2xl text-sm font-semibold text-text-secondary
-                bg-white border border-border shadow-card
-                hover:shadow-card-hover hover:-translate-y-0.5
-                transition-all duration-200">
+         class="w-full xs:w-auto px-7 py-3.5 rounded-2xl text-sm font-semibold text-text-secondary
+                bg-white border border-border shadow-card min-h-[48px] flex items-center justify-center
+                active:scale-95 transition-all duration-200">
         了解我 →
       </a>
     </div>
 
     <!-- 统计数字 -->
-    <div class="mt-16 flex items-center justify-center gap-8 sm:gap-16 animate-fade-up"
+    <div class="mt-10 sm:mt-16 flex items-center justify-center gap-6 sm:gap-16 animate-fade-up"
          style="animation-delay:0.5s">
       {[
         { num: '17', label: '开源仓库' },

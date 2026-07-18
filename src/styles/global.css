@@ -79,6 +79,43 @@ body {
 }
 .tech-tag:hover { background: rgba(37,99,235,0.08); color: #2563EB; border-color: rgba(37,99,235,0.2); }
 
+/* ── Mobile base ───────────────────────────────────── */
+/* Remove 300ms tap delay everywhere */
+a, button, [role="button"], input, label, select, textarea {
+  touch-action: manipulation;
+}
+/* iOS tap highlight */
+* { -webkit-tap-highlight-color: rgba(37,99,235,0.08); }
+/* Momentum scrolling */
+html { -webkit-overflow-scrolling: touch; }
+
+/* Safe area – iOS notch / home bar */
+body {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Fixed header with safe-area top */
+header.site-header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* dvh utility – avoids mobile browser chrome causing layout shift */
+.min-h-dvh { min-height: 100dvh; }
+
+/* Hide scrollbar on touch devices for cleaner look */
+@media (hover: none) and (pointer: coarse) {
+  ::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+}
+
+/* Smooth bento-card hover – no transform on touch (prevents sticky hover) */
+@media (hover: none) {
+  .bento-card:hover { transform: none; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04); }
+}
+
+/* Mobile nav open — prevent background scroll */
+body.nav-open { overflow: hidden; }
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   .reveal { opacity: 1; transform: none; }

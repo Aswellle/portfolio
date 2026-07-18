@@ -38,7 +38,7 @@ export default function Dashboard({ supabase }: { supabase: SupabaseClient }) {
 
       {/* 侧边栏 + 内容区 */}
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-48 bg-white border-r border-zinc-200 p-3 flex-shrink-0">
+        <aside className="hidden md:block w-48 bg-white border-r border-zinc-200 p-3 flex-shrink-0">
           <nav className="space-y-1">
             <button
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm
