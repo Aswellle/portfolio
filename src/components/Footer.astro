@@ -1,0 +1,28 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-border py-10 px-6">
+  <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="text-sm text-text-dim">
+      © {year} Aswellle — Built with
+      <a href="https://astro.build" target="_blank" rel="noopener noreferrer"
+         class="text-text-muted hover:text-text transition-colors duration-200">Astro</a>
+      · Deployed on
+      <a href="https://pages.cloudflare.com" target="_blank" rel="noopener noreferrer"
+         class="text-text-muted hover:text-text transition-colors duration-200">Cloudflare Pages</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="https://github.com/Aswellle" target="_blank" rel="noopener noreferrer"
+         class="text-sm text-text-dim hover:text-text-muted transition-colors duration-200"
+         aria-label="GitHub">
+        GitHub
+      </a>
+      <a href="https://pin-bead-studio.vercel.app" target="_blank" rel="noopener noreferrer"
+         class="text-sm text-text-dim hover:text-text-muted transition-colors duration-200"
+         aria-label="Pindou Studio app">
+        Pindou Studio ↗
+      </a>
+    </div>
+  </div>
+</footer>

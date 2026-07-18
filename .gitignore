@@ -1,0 +1,24 @@
+# env - never commit real keys
+.env
+.env.local
+.env.*.local
+
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# Supabase CLI binary (downloaded locally)
+supabase.exe
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code / agent files (local tooling only)
+.agents/
+.claude/
+skills-lock.json
+design-system/

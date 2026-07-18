@@ -1,0 +1,96 @@
+---
+---
+
+<section class="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
+  <!-- Ambient blobs -->
+  <div aria-hidden="true" class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full
+                bg-accent/8 blur-3xl animate-blob opacity-60"></div>
+    <div class="absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full
+                bg-indigo-700/10 blur-3xl animate-blob opacity-50"
+         style="animation-delay: 4s; animation-duration: 15s;"></div>
+    <div class="absolute top-1/2 right-1/3 w-64 h-64 rounded-full
+                bg-violet-600/8 blur-3xl animate-blob opacity-40"
+         style="animation-delay: 8s; animation-duration: 18s;"></div>
+  </div>
+
+  <!-- Grid pattern overlay -->
+  <div aria-hidden="true"
+    class="absolute inset-0 opacity-[0.03]"
+    style="background-image: linear-gradient(#6366F1 1px, transparent 1px), linear-gradient(to right, #6366F1 1px, transparent 1px);
+           background-size: 60px 60px;">
+  </div>
+
+  <!-- Content -->
+  <div class="relative z-10 text-center max-w-3xl mx-auto pt-20">
+    <div class="inline-flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full
+                bg-accent/8 border border-accent/20 text-xs text-accent-light font-medium
+                animate-fade-up">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true"></span>
+      Open to collaborations
+    </div>
+
+    <h1 class="text-5xl sm:text-6xl font-bold text-text tracking-tight leading-[1.1] animate-fade-up"
+        style="animation-delay: 0.1s; animation-fill-mode: both;">
+      Aswellle
+    </h1>
+
+    <p class="mt-4 text-xl sm:text-2xl font-light text-text-muted animate-fade-up"
+       style="animation-delay: 0.2s; animation-fill-mode: both;">
+      Building <span class="text-text font-medium">developer tools</span> &amp;
+      <span class="text-text font-medium">AI utilities</span>
+    </p>
+
+    <p class="mt-5 text-base text-text-dim max-w-xl mx-auto leading-relaxed animate-fade-up"
+       style="animation-delay: 0.3s; animation-fill-mode: both;">
+      Solo developer. Privacy-first. Chinese developer ecosystem focused.
+      Shipping open-source tools that run locally and solve real problems.
+    </p>
+
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-4 animate-fade-up"
+         style="animation-delay: 0.4s; animation-fill-mode: both;">
+      <a href="#projects"
+         class="px-6 py-2.5 rounded-xl text-sm font-semibold
+                bg-accent text-white
+                hover:bg-accent-light shadow-lg shadow-accent/20
+                transition-all duration-200 hover:shadow-accent/30 hover:-translate-y-0.5">
+        View Projects
+      </a>
+      <a href="https://github.com/Aswellle"
+         target="_blank" rel="noopener noreferrer"
+         class="px-6 py-2.5 rounded-xl text-sm font-semibold
+                bg-bg-surface text-text border border-border
+                hover:border-accent/30 hover:bg-bg-elevated
+                transition-all duration-200 hover:-translate-y-0.5">
+        GitHub Profile ↗
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="mt-16 flex items-center justify-center gap-8 sm:gap-12 animate-fade-up"
+         style="animation-delay: 0.5s; animation-fill-mode: both;">
+      <div class="text-center">
+        <div class="text-2xl font-bold text-text">17</div>
+        <div class="text-xs text-text-dim mt-0.5">Repositories</div>
+      </div>
+      <div class="w-px h-8 bg-border" aria-hidden="true"></div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-text">5</div>
+        <div class="text-xs text-text-dim mt-0.5">Featured Projects</div>
+      </div>
+      <div class="w-px h-8 bg-border" aria-hidden="true"></div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-text">4</div>
+        <div class="text-xs text-text-dim mt-0.5">Languages</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll cue -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-text-dim"
+       aria-hidden="true">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
+</section>
