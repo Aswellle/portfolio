@@ -1,80 +1,85 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --accent: #6366F1;
-  --accent-light: #818CF8;
-  --accent-glow: rgba(99, 102, 241, 0.15);
+  --accent: #2563EB;
+  --accent-purple: #7C3AED;
   scroll-behavior: smooth;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background-color: #020617;
-  color: #F8FAFC;
-}
+html { background: #F5F5F7; color: #1D1D1F; }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Noto Sans SC', 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+::selection { background: rgba(37,99,235,0.15); color: #1D1D1F; }
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #020617; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #6366F1; }
+::-webkit-scrollbar-track { background: #F5F5F7; }
+::-webkit-scrollbar-thumb { background: #D1D1D6; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2563EB; }
+:focus-visible { outline: 2px solid #2563EB; outline-offset: 2px; border-radius: 6px; }
 
-/* Selection */
-::selection { background: rgba(99, 102, 241, 0.25); color: #F8FAFC; }
-
-/* Glow border animation */
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
-  50% { box-shadow: 0 0 20px 4px rgba(99, 102, 241, 0.2); }
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.card-glow:hover {
-  animation: glow-pulse 2s ease-in-out infinite;
+/* Animated gradient background */
+.gradient-bg {
+  background: linear-gradient(270deg, #EFF6FF, #F5F3FF, #EFF6FF, #F0FDF4);
+  background-size: 400% 400%;
+  animation: gradientX 12s ease infinite;
+}
+
+/* Bento card base */
+.bento-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  border: 1px solid #E4E4E7;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  transition: box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.16,1,0.3,1);
+  overflow: hidden;
+}
+.bento-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.10), 0 12px 32px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
 }
 
 /* Scroll reveal */
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.55s cubic-bezier(0.16,1,0.3,1), transform 0.55s cubic-bezier(0.16,1,0.3,1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.stagger-1 { transition-delay: 0.08s; }
+.stagger-2 { transition-delay: 0.16s; }
+.stagger-3 { transition-delay: 0.24s; }
+.stagger-4 { transition-delay: 0.32s; }
+.stagger-5 { transition-delay: 0.40s; }
 
-/* Stagger delays */
-.stagger-1 { transition-delay: 0.1s; }
-.stagger-2 { transition-delay: 0.2s; }
-.stagger-3 { transition-delay: 0.3s; }
-.stagger-4 { transition-delay: 0.4s; }
-.stagger-5 { transition-delay: 0.5s; }
-
-/* Focus styles */
-:focus-visible {
-  outline: 2px solid #6366F1;
-  outline-offset: 2px;
-  border-radius: 4px;
+/* Tech tag */
+.tech-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  background: #F5F5F7;
+  color: #3F3F46;
+  border: 1px solid #E4E4E7;
+  transition: background 0.15s, color 0.15s;
 }
+.tech-tag:hover { background: rgba(37,99,235,0.08); color: #2563EB; border-color: rgba(37,99,235,0.2); }
 
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
+  *, ::before, ::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   .reveal { opacity: 1; transform: none; }
 }

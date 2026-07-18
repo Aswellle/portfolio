@@ -6,17 +6,27 @@ import ProjectCard from './ProjectCard.astro';
 <section id="projects" class="py-24 px-6">
   <div class="max-w-5xl mx-auto">
     <div class="reveal mb-12">
-      <span class="text-xs font-mono text-accent tracking-widest uppercase">Open Source</span>
-      <h2 class="mt-3 text-3xl font-bold text-text">Projects</h2>
+      <span class="text-xs font-mono text-accent tracking-widest uppercase font-medium">开源项目</span>
+      <h2 class="mt-2 text-3xl font-bold text-text">我正在构建的东西</h2>
       <p class="mt-3 text-text-muted max-w-xl">
-        Tools I've built and shipped — each one solving a problem I actually had.
+        每个项目都是为了解决一个我自己遇到的真实问题——本地优先、隐私友好、面向中文开发者。
       </p>
     </div>
 
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {projects.map((project, i) => (
         <ProjectCard project={project} index={i} />
       ))}
+    </div>
+
+    <div class="mt-10 text-center reveal stagger-5">
+      <a href="https://github.com/Aswellle?tab=repositories" target="_blank" rel="noopener noreferrer"
+         class="inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent transition-colors duration-200">
+        查看全部 17 个仓库
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+        </svg>
+      </a>
     </div>
   </div>
 </section>

@@ -1,28 +1,25 @@
 ---
 import type { Project } from '../data/projects';
 
-export interface Props {
-  project: Project;
-  index?: number;
-}
-
+export interface Props { project: Project; index?: number; }
 const { project, index = 0 } = Astro.props;
-const delay = `${0.05 + index * 0.07}s`;
+const delay = `${0.06 + index * 0.07}s`;
 ---
 
 <article
-  class="group reveal flex flex-col h-full rounded-2xl overflow-hidden
-         bg-bg-surface border border-border
-         hover:border-accent/30 hover:bg-bg-elevated
-         transition-all duration-300 card-glow"
-  style={`transition-delay: ${delay}`}
+  class="bento-card reveal flex flex-col h-full cursor-pointer group"
+  style={`transition-delay:${delay}`}
 >
+  <!-- 顶部渐变条 -->
+  <div class="h-1.5 w-full bg-gradient-to-r from-accent to-accent-purple opacity-0
+              group-hover:opacity-100 transition-opacity duration-300 rounded-t-3xl"></div>
+
   <div class="p-6 flex flex-col flex-1">
-    <!-- Header -->
-    <div class="flex items-start justify-between gap-3 mb-4">
+    <!-- 标题区 -->
+    <div class="flex items-start justify-between gap-3 mb-3">
       <div>
         <div class="flex items-center gap-2 flex-wrap">
-          <h3 class="font-semibold text-text text-lg leading-tight">
+          <h3 class="font-semibold text-text text-base leading-tight group-hover:text-accent transition-colors duration-200">
             {project.name}
           </h3>
           {project.nameZh && (
@@ -30,61 +27,47 @@ const delay = `${0.05 + index * 0.07}s`;
           )}
         </div>
         {project.badge && (
-          <span class={`mt-1 inline-block text-xs font-medium px-2 py-0.5 rounded-full
-            ${project.badge === 'Live'
-              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-              : project.badge === 'Flagship'
-              ? 'bg-accent/10 text-accent-light border border-accent/20'
-              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-            }`}>
-            {project.badge}
+          <span class={`mt-1.5 inline-block text-xs font-medium px-2 py-0.5 rounded-full
+            ${project.badge === 'Live'    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+            : project.badge === 'Flagship' ? 'bg-blue-50 text-blue-600 border border-blue-200'
+            :                               'bg-amber-50 text-amber-600 border border-amber-200'}`}>
+            {project.badge === 'Live' ? '🟢 已部署' : project.badge === 'Flagship' ? '⭐ 主项目' : '✨ 新'}
           </span>
         )}
       </div>
-      <!-- Stars -->
       {project.stars > 0 && (
-        <div class="flex items-center gap-1 text-xs text-text-dim flex-shrink-0">
-          <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+        <span class="flex items-center gap-1 text-xs text-text-dim flex-shrink-0 bg-bg-elevated px-2 py-1 rounded-lg">
+          <svg class="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
           </svg>
-          <span>{project.stars}</span>
-        </div>
+          {project.stars}
+        </span>
       )}
     </div>
 
-    <!-- Description -->
-    <p class="text-sm text-text-muted leading-relaxed flex-1 mb-5">
-      {project.longDesc}
-    </p>
+    <!-- 简短描述 -->
+    <p class="text-sm text-text-muted leading-relaxed flex-1 mb-4">{project.longDesc}</p>
 
-    <!-- Tags -->
+    <!-- 技术标签 -->
     <div class="flex flex-wrap gap-1.5 mb-5">
-      {project.tags.map((tag) => (
-        <span class="text-xs px-2 py-0.5 rounded-md bg-bg-muted text-text-dim border border-border font-mono">
-          {tag}
-        </span>
-      ))}
+      {project.tags.map((tag) => <span class="tech-tag">{tag}</span>)}
     </div>
 
-    <!-- Language dot + links -->
+    <!-- 底部：语言 + 链接 -->
     <div class="flex items-center justify-between pt-4 border-t border-border">
       <div class="flex items-center gap-1.5">
-        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style={`background:${project.langColor}`} aria-hidden="true"></span>
-        <span class="text-xs text-text-dim">{project.lang}</span>
+        <span class="w-2.5 h-2.5 rounded-full" style={`background:${project.langColor}`} aria-hidden="true"></span>
+        <span class="text-xs text-text-dim font-mono">{project.lang}</span>
       </div>
       <div class="flex items-center gap-3">
         {project.liveUrl && (
           <a href={project.liveUrl} target="_blank" rel="noopener noreferrer"
-             class="text-xs text-emerald-400 hover:text-emerald-300 transition-colors duration-150 font-medium"
-             aria-label={`${project.name} live demo`}>
-            Live ↗
-          </a>
+             class="text-xs font-medium text-emerald-600 hover:text-emerald-500 transition-colors duration-150"
+             aria-label={`${project.name} 在线演示`}>在线体验 ↗</a>
         )}
         <a href={project.githubUrl} target="_blank" rel="noopener noreferrer"
-           class="text-xs text-text-dim hover:text-accent-light transition-colors duration-150 font-medium"
-           aria-label={`${project.name} on GitHub`}>
-          GitHub ↗
-        </a>
+           class="text-xs font-medium text-text-muted hover:text-accent transition-colors duration-150"
+           aria-label={`${project.name} GitHub 仓库`}>GitHub ↗</a>
       </div>
     </div>
   </div>

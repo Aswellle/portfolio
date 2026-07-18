@@ -2,27 +2,22 @@
 const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-border py-10 px-6">
+<footer class="border-t border-border bg-white py-10 px-6">
   <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-    <div class="text-sm text-text-dim">
-      © {year} Aswellle — Built with
+    <div class="text-sm text-text-muted">
+      © {year} Aswellle · 用
       <a href="https://astro.build" target="_blank" rel="noopener noreferrer"
-         class="text-text-muted hover:text-text transition-colors duration-200">Astro</a>
-      · Deployed on
+         class="text-text hover:text-accent transition-colors">Astro</a>
+      构建 · 部署于
       <a href="https://pages.cloudflare.com" target="_blank" rel="noopener noreferrer"
-         class="text-text-muted hover:text-text transition-colors duration-200">Cloudflare Pages</a>
+         class="text-text hover:text-accent transition-colors">Cloudflare Pages</a>
     </div>
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-5 text-sm text-text-muted">
       <a href="https://github.com/Aswellle" target="_blank" rel="noopener noreferrer"
-         class="text-sm text-text-dim hover:text-text-muted transition-colors duration-200"
-         aria-label="GitHub">
-        GitHub
-      </a>
+         class="hover:text-text transition-colors">GitHub</a>
       <a href="https://pin-bead-studio.vercel.app" target="_blank" rel="noopener noreferrer"
-         class="text-sm text-text-dim hover:text-text-muted transition-colors duration-200"
-         aria-label="Pindou Studio app">
-        Pindou Studio ↗
-      </a>
+         class="hover:text-text transition-colors">拼豆 Studio ↗</a>
+      <a href="#contact" class="hover:text-text transition-colors">联系我</a>
     </div>
   </div>
 </footer>

@@ -1,53 +1,121 @@
 ---
-const skills = [
-  { label: 'Tauri + Rust', icon: '🦀' },
-  { label: 'TypeScript', icon: '⬡' },
-  { label: 'React / Astro', icon: '⚛' },
-  { label: 'Python', icon: '🐍' },
-  { label: 'AI Integration', icon: '◈' },
-  { label: 'Privacy-first', icon: '🔒' },
+const techStack = [
+  { name: 'TypeScript', color: '#3178C6' },
+  { name: 'Rust',       color: '#CE422B' },
+  { name: 'React',      color: '#61DAFB' },
+  { name: 'Python',     color: '#3572A5' },
+  { name: 'Tauri',      color: '#24C8D8' },
+  { name: 'Bun',        color: '#FBF0DF' },
+  { name: 'Astro',      color: '#FF5D01' },
+  { name: 'Tailwind',   color: '#38BDF8' },
+];
+
+const values = [
+  { icon: '🔒', title: '隐私优先', desc: '数据在本地，不上云，不依赖账号' },
+  { icon: '🛠', title: '工具主义', desc: '解决真实问题，不做 Demo 工程' },
+  { icon: '🌏', title: '中文生态', desc: '为中文开发者提供更好用的工具' },
+  { icon: '📦', title: '开源精神', desc: '代码开放，持续迭代，欢迎 PR' },
 ];
 ---
 
-<section id="about" class="py-24 px-6">
-  <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-    <div class="reveal">
-      <span class="text-xs font-mono text-accent tracking-widest uppercase">About</span>
-      <h2 class="mt-3 text-3xl font-bold text-text leading-snug">
-        Solo builder.<br/>Privacy-first philosophy.
-      </h2>
-      <p class="mt-5 text-text-muted leading-relaxed">
-        I build developer tools and utilities focused on the Chinese developer ecosystem —
-        tools that run locally, respect privacy, and solve real workflow pain points.
-      </p>
-      <p class="mt-4 text-text-muted leading-relaxed">
-        Most of my projects aggregate powerful AI services behind clean interfaces,
-        or bring desktop-quality UX to problems usually solved with clunky web apps.
-      </p>
-      <a
-        href="https://github.com/Aswellle"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="mt-8 inline-flex items-center gap-2 text-sm font-medium text-accent-light
-               hover:text-accent transition-colors duration-200"
-        aria-label="View all projects on GitHub"
-      >
-        View all repos on GitHub
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-        </svg>
-      </a>
+<section id="about" class="py-24 px-6 bg-bg-elevated">
+  <div class="max-w-5xl mx-auto">
+
+    <div class="reveal mb-10">
+      <span class="text-xs font-mono text-accent tracking-widest uppercase font-medium">关于我</span>
+      <h2 class="mt-2 text-3xl font-bold text-text">个人名片</h2>
     </div>
 
-    <div class="reveal stagger-2 grid grid-cols-2 gap-3">
-      {skills.map((skill) => (
-        <div class="flex items-center gap-3 px-4 py-3 rounded-xl
-                    bg-bg-surface border border-border
-                    hover:border-accent/30 transition-colors duration-200">
-          <span class="text-lg" aria-hidden="true">{skill.icon}</span>
-          <span class="text-sm text-text-muted font-medium">{skill.label}</span>
+    <!-- Bento Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-auto">
+
+      <!-- 大卡：自我介绍 (2列) -->
+      <div class="bento-card reveal md:col-span-2 p-8">
+        <div class="flex items-start gap-5">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-accent-purple
+                      flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 shadow-accent-glow">
+            A
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-text">Aswellle</h3>
+            <p class="text-accent text-sm font-medium mt-0.5">独立开发者 / 开源爱好者</p>
+            <p class="text-text-muted text-sm leading-relaxed mt-3">
+              热爱构建对开发者真正有用的工具。偏好隐私优先和本地优先的设计哲学，
+              擅长跨平台桌面应用（Tauri + Rust）和 AI 工具集成。
+              正在探索用 AI 加速独立开发的工作流。
+            </p>
+          </div>
+        </div>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <a href="https://github.com/Aswellle" target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
+                    bg-bg-elevated text-text-secondary border border-border
+                    hover:border-accent/30 hover:text-accent hover:-translate-y-0.5
+                    transition-all duration-200">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+            </svg>
+            @Aswellle
+          </a>
+          <a href="https://pin-bead-studio.vercel.app" target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
+                    bg-emerald-50 text-emerald-700 border border-emerald-200
+                    hover:-translate-y-0.5 transition-all duration-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
+            拼豆 Studio ↗
+          </a>
+          <a href="#contact"
+             class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
+                    bg-blue-50 text-blue-700 border border-blue-200
+                    hover:-translate-y-0.5 transition-all duration-200">
+            联系我
+          </a>
+        </div>
+      </div>
+
+      <!-- 小卡：当前状态 -->
+      <div class="bento-card reveal stagger-1 p-6 flex flex-col justify-between">
+        <div>
+          <div class="text-2xl mb-3" aria-hidden="true">💻</div>
+          <h3 class="font-semibold text-text text-sm mb-2">当前状态</h3>
+          <p class="text-text-muted text-sm leading-relaxed">
+            专注于 <span class="text-accent font-medium">启灵 (QiLing)</span> 的功能完善，
+            同时探索新的桌面工具想法。
+          </p>
+        </div>
+        <div class="mt-4 pt-4 border-t border-border">
+          <div class="flex items-center gap-2 text-xs text-text-muted">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+            开放合作机会
+          </div>
+        </div>
+      </div>
+
+      <!-- 技术栈卡片 (full width) -->
+      <div class="bento-card reveal stagger-2 p-6 md:col-span-3">
+        <h3 class="font-semibold text-text text-sm mb-4">技术栈</h3>
+        <div class="flex flex-wrap gap-2">
+          {techStack.map((t) => (
+            <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium
+                         bg-bg-elevated border border-border text-text-secondary
+                         hover:border-accent/30 hover:bg-accent/5 hover:text-accent
+                         transition-all duration-200 cursor-default">
+              <span class="w-2 h-2 rounded-full" style={`background:${t.color}`} aria-hidden="true"></span>
+              {t.name}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <!-- 价值观 4 小卡 -->
+      {values.map((v, i) => (
+        <div class={`bento-card reveal stagger-${i + 1} p-6`}>
+          <div class="text-2xl mb-3" aria-hidden="true">{v.icon}</div>
+          <h3 class="font-semibold text-text text-sm mb-1">{v.title}</h3>
+          <p class="text-text-muted text-xs leading-relaxed">{v.desc}</p>
         </div>
       ))}
+
     </div>
   </div>
 </section>

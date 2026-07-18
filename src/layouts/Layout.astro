@@ -7,13 +7,13 @@ export interface Props {
 }
 
 const {
-  title = 'Aswellle — Developer',
-  description = 'Open-source developer building AI tools, desktop utilities, and creative web apps.',
+  title = 'Aswellle — 开发者',
+  description = '开源开发者，专注于 AI 工具、桌面应用与创意 Web 应用。面向中文开发者生态。',
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,18 +21,20 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#F5F5F7" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
   </head>
   <body class="bg-bg text-text min-h-screen">
     <slot />
     <script>
-      // Scroll reveal
-      const observer = new IntersectionObserver(
-        (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('visible')),
-        { threshold: 0.1 }
+      const io = new IntersectionObserver(
+        (entries) => entries.forEach((e) => {
+          if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+        }),
+        { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
       );
-      document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
     </script>
   </body>
 </html>
