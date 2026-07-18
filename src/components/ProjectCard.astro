@@ -7,12 +7,13 @@ const delay = `${0.06 + index * 0.07}s`;
 ---
 
 <article
-  class="bento-card reveal flex flex-col h-full cursor-pointer group"
+  class="bento-card reveal relative flex flex-col h-full cursor-pointer group"
   style={`transition-delay:${delay}`}
 >
-  <!-- 顶部渐变条 -->
-  <div class="h-1.5 w-full bg-gradient-to-r from-accent to-accent-purple opacity-0
-              group-hover:opacity-100 transition-opacity duration-300 rounded-t-3xl"></div>
+  <!-- 左侧渐变竖线条 -->
+  <div class="absolute left-0 inset-y-0 w-1 bg-gradient-to-b from-accent to-accent-purple
+              opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-l-3xl"
+       aria-hidden="true"></div>
 
   <div class="p-6 flex flex-col flex-1">
     <!-- 标题区 -->
