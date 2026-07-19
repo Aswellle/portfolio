@@ -79,4 +79,15 @@ export const projects: Project[] = [
     stars: 2,
     githubUrl: 'https://github.com/Aswellle/2image',
   },
+  {
+    id: 'remotebridge',
+    name: 'RemoteBridge',
+    description: '无需端口转发的跨网络远程文件访问工具',
+    longDesc: '中继服务器架构：Electron 桌面应用（Host）向公网中继发起出站 WebSocket 连接，浏览器通过 PIN 码配对后即可浏览和下载本机文件。零防火墙配置、白名单路径隔离、httpOnly Cookie 防 XSS、一次性下载令牌，支持 Docker 自托管中继服务器。',
+    tags: ['Electron', 'Next.js 14', 'Fastify', 'WebSocket', 'Turborepo'],
+    lang: 'TypeScript',
+    langColor: '#3178C6',
+    stars: 0,
+    githubUrl: 'https://github.com/Aswellle/RemoteBridge',
+  },
 ];
