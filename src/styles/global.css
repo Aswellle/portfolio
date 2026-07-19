@@ -116,6 +116,22 @@ header.site-header {
 /* Mobile nav open — prevent background scroll */
 body.nav-open { overflow: hidden; }
 
+/* ── iOS Safari zoom-on-focus fix ──────────────────
+   Safari zooms the page when an input has font-size < 16px.
+   Force 16px on touch devices only; desktop keeps text-sm styling. */
+@media (hover: none) and (pointer: coarse) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   .reveal { opacity: 1; transform: none; }
