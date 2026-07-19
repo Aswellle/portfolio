@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import ScrollToTop from '../components/ScrollToTop.astro';
 
 export interface Props {
   title?: string;
@@ -27,6 +28,7 @@ const {
   </head>
   <body class="bg-bg text-text min-h-screen">
     <slot />
+    <ScrollToTop />
     <script>
       const io = new IntersectionObserver(
         (entries) => entries.forEach((e) => {

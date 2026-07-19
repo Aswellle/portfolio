@@ -1,0 +1,160 @@
+---
+---
+
+<button
+  id="scroll-top-btn"
+  aria-label="回到顶部，当前阅读进度"
+>
+  <!-- 进度环 SVG，rotate(-90deg) 让起点在12点方向 -->
+  <svg
+    viewBox="0 0 48 48"
+    class="progress-svg"
+    aria-hidden="true"
+  >
+    <!-- 轨道圆（灰色底） -->
+    <circle
+      cx="24" cy="24" r="20"
+      fill="none"
+      stroke="#E4E4E7"
+      stroke-width="2.5"
+    />
+    <!-- 进度圆（蓝色填充） -->
+    <circle
+      id="scroll-ring"
+      cx="24" cy="24" r="20"
+      fill="none"
+      stroke="#2563EB"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-dasharray="125.664"
+      stroke-dashoffset="125.664"
+    />
+  </svg>
+
+  <!-- 向上箭头 -->
+  <svg
+    class="arrow-icon"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    aria-hidden="true"
+  >
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
+  </svg>
+</button>
+
+<style>
+  #scroll-top-btn {
+    position: fixed;
+    right: 1.5rem;
+    /* 兼容 iOS 底部安全区 */
+    bottom: max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 1rem));
+    z-index: 40;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1px solid #E4E4E7;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 0 0 0 rgba(37,99,235,0);
+    cursor: pointer;
+    /* 初始隐藏 */
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16,1,0.3,1),
+                transform 0.3s cubic-bezier(0.16,1,0.3,1),
+                box-shadow 0.2s ease;
+    will-change: opacity, transform;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  #scroll-top-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  #scroll-top-btn:hover {
+    box-shadow: 0 4px 16px rgba(37,99,235,0.18);
+    transform: translateY(-2px);
+  }
+
+  #scroll-top-btn:active {
+    transform: scale(0.93);
+  }
+
+  .progress-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* 让12点方向作为起始点 */
+    transform: rotate(-90deg);
+  }
+
+  #scroll-ring {
+    transition: stroke-dashoffset 0.12s linear;
+  }
+
+  .arrow-icon {
+    position: relative;
+    z-index: 1;
+    width: 16px;
+    height: 16px;
+    color: #3F3F46;
+    transition: color 0.15s ease;
+  }
+
+  #scroll-top-btn:hover .arrow-icon {
+    color: #2563EB;
+  }
+
+  /* 滚动到底部时箭头也变蓝 */
+  #scroll-top-btn.at-bottom .arrow-icon {
+    color: #2563EB;
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('scroll-top-btn') as HTMLButtonElement | null;
+  const ring = document.getElementById('scroll-ring') as SVGCircleElement | null;
+
+  if (btn && ring) {
+    const CIRCUMFERENCE = 2 * Math.PI * 20; // 125.664
+
+    function update() {
+      const scrollY = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? Math.min(scrollY / maxScroll, 1) : 0;
+
+      // 显隐
+      if (scrollY > 80) {
+        btn.classList.add('visible');
+      } else {
+        btn.classList.remove('visible', 'at-bottom');
+      }
+
+      // 到底部时附加 at-bottom 类
+      if (progress >= 0.99) {
+        btn.classList.add('at-bottom');
+      } else {
+        btn.classList.remove('at-bottom');
+      }
+
+      // 进度环：dashoffset 从 CIRCUMFERENCE（空）减到 0（满）
+      ring.style.strokeDashoffset = String(CIRCUMFERENCE * (1 - progress));
+    }
+
+    window.addEventListener('scroll', update, { passive: true });
+    // 初始计算一次（防止刷新后页面不在顶部）
+    update();
+
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+</script>
