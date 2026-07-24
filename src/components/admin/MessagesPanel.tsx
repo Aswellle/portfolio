@@ -203,7 +203,7 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
         {/* 消息详情 — 桌面始终显示，移动端仅 detail 视图 */}
         <div className={`
           ${mobileView === 'detail' ? 'flex' : 'hidden'} md:flex
-          flex-1 overflow-auto
+          flex-col flex-1 overflow-hidden
         `}>
           <DetailPane />
         </div>
