@@ -55,7 +55,7 @@ export default function Dashboard({ supabase }: { supabase: SupabaseClient }) {
           </nav>
         </aside>
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-hidden">
           {tab === 'messages' && <MessagesPanel supabase={supabase} />}
         </main>
       </div>
