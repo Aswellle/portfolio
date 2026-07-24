@@ -79,7 +79,7 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
       a ? 'bg-blue-600 text-white shadow-sm' : 'text-zinc-500 hover:bg-zinc-100'}`;
 
   return (
-    <div className="flex flex-col" style={{ height: '100%' }}>
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* 筛选栏 */}
       <div className="px-4 sm:px-6 py-3 border-b border-zinc-200 bg-white flex items-center justify-between gap-3 flex-wrap shrink-0">
         <div className="flex items-center gap-3">
@@ -146,7 +146,7 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
         <div className={`${mobileView === 'detail' ? 'flex' : 'hidden'} md:flex flex-col`}
           style={{ flex: '1 1 0', minWidth: 0, minHeight: 0 }}>
           {!selected ? (
-            <div className="flex flex-col items-center justify-center h-full text-zinc-400 gap-2">
+            <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 gap-2">
               <svg className="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
