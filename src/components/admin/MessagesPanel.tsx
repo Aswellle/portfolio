@@ -79,9 +79,9 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
       a ? 'bg-blue-600 text-white shadow-sm' : 'text-zinc-500 hover:bg-zinc-100'}`;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="msg-panel">
       {/* 筛选栏 */}
-      <div className="px-4 sm:px-6 py-3 border-b border-zinc-200 bg-white flex items-center justify-between gap-3 flex-wrap shrink-0">
+      <div className="msg-toolbar px-4 sm:px-6 py-3 border-b border-zinc-200 bg-white flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           {mobileView === 'detail' && (
             <button onClick={() => setMobileView('list')}
@@ -109,10 +109,9 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
       </div>
 
       {/* 双栏区域 */}
-      <div className="flex" style={{ flex: '1 1 0', minHeight: 0 }}>
+      <div className="msg-content">
         {/* 消息列表 */}
-        <div className={`${mobileView === 'list' ? 'flex' : 'hidden'} md:flex flex-col shrink-0 border-r border-zinc-200 bg-white`}
-          style={{ width: '20rem', overflowY: 'auto' }}>
+        <div className="msg-list" style={{ display: mobileView === 'list' ? undefined : 'none' }}>
           {loading ? (
             <div className="flex items-center justify-center py-16 text-zinc-400 text-sm">加载中…</div>
           ) : filtered.length === 0 ? (
@@ -143,10 +142,9 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
         </div>
 
         {/* 消息详情 */}
-        <div className={`${mobileView === 'detail' ? 'flex' : 'hidden'} md:flex flex-col`}
-          style={{ flex: '1 1 0', minWidth: 0, minHeight: 0 }}>
+        <div className="msg-detail" style={{ display: mobileView === 'detail' ? undefined : 'none' }}>
           {!selected ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 gap-2">
+            <div className="msg-detail-empty text-zinc-400">
               <svg className="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -155,8 +153,7 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
             </div>
           ) : (
             <>
-              {/* 固定头部 */}
-              <div className="flex items-start justify-between px-4 sm:px-6 py-4 border-b border-zinc-100 shrink-0 flex-wrap gap-3">
+              <div className="msg-detail-header flex items-start justify-between px-4 sm:px-6 py-4 border-b border-zinc-100 flex-wrap gap-3">
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold text-zinc-800">{selected.name}</h3>
                   <a href={`mailto:${selected.email}`} className="text-sm text-blue-600 hover:underline break-all">{selected.email}</a>
@@ -174,8 +171,7 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
                   </button>
                 </div>
               </div>
-              {/* 可滚动正文 */}
-              <div className="px-4 sm:px-6 py-4" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto' }}>
+              <div className="msg-detail-body px-4 sm:px-6 py-4">
                 <div className="bg-white rounded-2xl border border-zinc-200 p-5 shadow-sm">
                   <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{selected.message}</p>
                 </div>

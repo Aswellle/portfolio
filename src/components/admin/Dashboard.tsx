@@ -12,9 +12,8 @@ export default function Dashboard({ supabase }: { supabase: SupabaseClient }) {
   };
 
   return (
-    <div className="h-screen bg-zinc-50 flex flex-col overflow-hidden">
-      {/* 顶部导航 */}
-      <header className="bg-white border-b border-zinc-200 px-6 py-3 flex items-center justify-between">
+    <div className="admin-root bg-zinc-50">
+      <header className="bg-white border-b border-zinc-200 px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600
                           flex items-center justify-center text-white text-sm font-bold shadow-sm">A</div>
@@ -36,9 +35,8 @@ export default function Dashboard({ supabase }: { supabase: SupabaseClient }) {
         </div>
       </header>
 
-      {/* 侧边栏 + 内容区 */}
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden md:block w-48 bg-white border-r border-zinc-200 p-3 flex-shrink-0">
+      <div className="admin-body">
+        <aside className="admin-sidebar w-48 bg-white border-r border-zinc-200 p-3 shrink-0">
           <nav className="space-y-1">
             <button
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm
@@ -55,7 +53,7 @@ export default function Dashboard({ supabase }: { supabase: SupabaseClient }) {
           </nav>
         </aside>
 
-        <main className="flex flex-col flex-1 overflow-hidden">
+        <main className="admin-main">
           {tab === 'messages' && <MessagesPanel supabase={supabase} />}
         </main>
       </div>
