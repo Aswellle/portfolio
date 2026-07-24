@@ -12,7 +12,7 @@ export default function Dashboard({ supabase }: { supabase: SupabaseClient }) {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col">
+    <div className="h-screen bg-zinc-50 flex flex-col overflow-hidden">
       {/* 顶部导航 */}
       <header className="bg-white border-b border-zinc-200 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
