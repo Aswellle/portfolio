@@ -19,19 +19,19 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
   const [loading, setLoading] = useState(true);
   const [mobileView, setMobileView] = useState<MobileView>('list');
 
-  const fetch = useCallback(async () => {
+  const load = useCallback(async () => {
     const { data } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
     if (data) setContacts(data as Contact[]);
     setLoading(false);
   }, [supabase]);
 
   useEffect(() => {
-    fetch();
+    load();
     const ch = supabase.channel('admin-contacts')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, fetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [fetch, supabase]);
+  }, [load, supabase]);
 
   const markRead = async (c: Contact) => {
     if (c.read_at) return;
@@ -78,93 +78,11 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
     `px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 min-h-[36px] ${
       a ? 'bg-blue-600 text-white shadow-sm' : 'text-zinc-500 hover:bg-zinc-100'}`;
 
-  /* ── Shared: detail pane content ─────────────── */
-  const DetailPane = () => !selected ? (
-    <div className="flex flex-col items-center justify-center flex-1 text-zinc-400 gap-2">
-      <svg className="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-      </svg>
-      <p className="text-sm">选择一条消息查看详情</p>
-    </div>
-  ) : (
-    <div className="flex flex-col flex-1 overflow-hidden">
-      {/* 固定头部：发件人信息 + 操作按钮 */}
-      <div className="flex items-start justify-between px-4 sm:px-6 py-4 border-b border-zinc-100 flex-shrink-0 flex-wrap gap-3">
-        <div>
-          <h3 className="text-base sm:text-lg font-semibold text-zinc-800">{selected.name}</h3>
-          <a href={`mailto:${selected.email}`} className="text-sm text-blue-600 hover:underline break-all">{selected.email}</a>
-          <p className="text-xs text-zinc-400 mt-1">{fmt(selected.created_at)}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={() => toggleStar(selected)}
-            className={`px-3 py-2 rounded-xl text-xs font-medium border min-h-[44px] transition-all duration-150 ${
-              selected.is_starred ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-white text-zinc-500 border-zinc-200'}`}>
-            {selected.is_starred ? '★ 已加星' : '☆ 加星'}
-          </button>
-          <button onClick={() => del(selected.id)}
-            className="px-3 py-2 rounded-xl text-xs font-medium border border-red-200 bg-red-50 text-red-600 min-h-[44px] transition-all duration-150">
-            删除
-          </button>
-        </div>
-      </div>
-      {/* 可滚动正文区 */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-        <div className="bg-white rounded-2xl border border-zinc-200 p-5 shadow-sm">
-          <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{selected.message}</p>
-        </div>
-        {selected.read_at && (
-          <p className="text-xs text-zinc-400 mt-3 flex items-center gap-1.5">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
-            </svg>
-            已读 · {fmt(selected.read_at)}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-
-  /* ── Shared: message list ─────────────────────── */
-  const MessageList = () => (
-    <div className="flex-1 overflow-y-auto bg-white">
-      {loading ? (
-        <div className="flex items-center justify-center py-16 text-zinc-400 text-sm">加载中…</div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-zinc-400 gap-2">
-          <svg className="w-8 h-8 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-          </svg>
-          <span className="text-xs">暂无消息</span>
-        </div>
-      ) : filtered.map(c => (
-        <button key={c.id} onClick={() => handleSelect(c)}
-          className={`w-full text-left px-4 py-4 border-b border-zinc-100 transition-all duration-150
-                     active:bg-zinc-100 min-h-[72px]
-                     ${selected?.id === c.id ? 'bg-blue-50 border-l-2 border-l-blue-500' : 'hover:bg-zinc-50'}
-                     ${!c.read_at ? 'bg-blue-50/40' : ''}`}>
-          <div className="flex items-center justify-between mb-1">
-            <span className={`text-sm font-medium truncate ${!c.read_at ? 'text-zinc-900' : 'text-zinc-600'}`}>{c.name}</span>
-            <span className="text-xs text-zinc-400 flex-shrink-0 ml-2">{fmt(c.created_at)}</span>
-          </div>
-          <p className="text-xs text-zinc-400 truncate mb-1">{c.message}</p>
-          <div className="flex items-center gap-2">
-            {!c.read_at && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />}
-            {c.is_starred && <span className="text-amber-400 text-xs">★</span>}
-            <span className="text-xs text-zinc-400 truncate">{c.email}</span>
-          </div>
-        </button>
-      ))}
-    </div>
-  );
-
   return (
-    <div className="h-full flex flex-col">
-      {/* 统计 + 筛选栏 */}
-      <div className="px-4 sm:px-6 py-3 border-b border-zinc-200 bg-white flex items-center justify-between gap-3 flex-wrap flex-shrink-0">
+    <div className="flex flex-col" style={{ height: '100%' }}>
+      {/* 筛选栏 */}
+      <div className="px-4 sm:px-6 py-3 border-b border-zinc-200 bg-white flex items-center justify-between gap-3 flex-wrap shrink-0">
         <div className="flex items-center gap-3">
-          {/* 移动端返回按钮 */}
           {mobileView === 'detail' && (
             <button onClick={() => setMobileView('list')}
               className="md:hidden flex items-center gap-1 text-sm text-blue-600 min-h-[44px] pr-2">
@@ -190,25 +108,90 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
         </div>
       </div>
 
-      {/* 桌面：双栏 | 移动：单栏切换 */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* 消息列表 — 桌面始终显示，移动端仅 list 视图 */}
-        <div className={`
-          ${mobileView === 'list' ? 'flex' : 'hidden'} md:flex
-          flex-col w-full md:w-80 border-r border-zinc-200 flex-shrink-0
-        `}>
-          <MessageList />
+      {/* 双栏区域 */}
+      <div className="flex" style={{ flex: '1 1 0', minHeight: 0 }}>
+        {/* 消息列表 */}
+        <div className={`${mobileView === 'list' ? 'flex' : 'hidden'} md:flex flex-col shrink-0 border-r border-zinc-200 bg-white`}
+          style={{ width: '20rem', overflowY: 'auto' }}>
+          {loading ? (
+            <div className="flex items-center justify-center py-16 text-zinc-400 text-sm">加载中…</div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-zinc-400 gap-2">
+              <svg className="w-8 h-8 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+              </svg>
+              <span className="text-xs">暂无消息</span>
+            </div>
+          ) : filtered.map(c => (
+            <button key={c.id} onClick={() => handleSelect(c)}
+              className={`w-full text-left px-4 py-4 border-b border-zinc-100 transition-all duration-150 active:bg-zinc-100 min-h-[72px]
+                ${selected?.id === c.id ? 'bg-blue-50 border-l-2 border-l-blue-500' : 'hover:bg-zinc-50'}
+                ${!c.read_at ? 'bg-blue-50/40' : ''}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-sm font-medium truncate ${!c.read_at ? 'text-zinc-900' : 'text-zinc-600'}`}>{c.name}</span>
+                <span className="text-xs text-zinc-400 shrink-0 ml-2">{fmt(c.created_at)}</span>
+              </div>
+              <p className="text-xs text-zinc-400 truncate mb-1">{c.message}</p>
+              <div className="flex items-center gap-2">
+                {!c.read_at && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
+                {c.is_starred && <span className="text-amber-400 text-xs">★</span>}
+                <span className="text-xs text-zinc-400 truncate">{c.email}</span>
+              </div>
+            </button>
+          ))}
         </div>
 
-        {/* 消息详情 — 桌面始终显示，移动端仅 detail 视图 */}
-        <div className={`
-          ${mobileView === 'detail' ? 'flex' : 'hidden'} md:flex
-          flex-col flex-1 overflow-hidden
-        `}>
-          <DetailPane />
+        {/* 消息详情 */}
+        <div className={`${mobileView === 'detail' ? 'flex' : 'hidden'} md:flex flex-col`}
+          style={{ flex: '1 1 0', minWidth: 0, minHeight: 0 }}>
+          {!selected ? (
+            <div className="flex flex-col items-center justify-center h-full text-zinc-400 gap-2">
+              <svg className="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              <p className="text-sm">选择一条消息查看详情</p>
+            </div>
+          ) : (
+            <>
+              {/* 固定头部 */}
+              <div className="flex items-start justify-between px-4 sm:px-6 py-4 border-b border-zinc-100 shrink-0 flex-wrap gap-3">
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-zinc-800">{selected.name}</h3>
+                  <a href={`mailto:${selected.email}`} className="text-sm text-blue-600 hover:underline break-all">{selected.email}</a>
+                  <p className="text-xs text-zinc-400 mt-1">{fmt(selected.created_at)}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => toggleStar(selected)}
+                    className={`px-3 py-2 rounded-xl text-xs font-medium border min-h-[44px] transition-all duration-150 ${
+                      selected.is_starred ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-white text-zinc-500 border-zinc-200'}`}>
+                    {selected.is_starred ? '★ 已加星' : '☆ 加星'}
+                  </button>
+                  <button onClick={() => del(selected.id)}
+                    className="px-3 py-2 rounded-xl text-xs font-medium border border-red-200 bg-red-50 text-red-600 min-h-[44px] transition-all duration-150">
+                    删除
+                  </button>
+                </div>
+              </div>
+              {/* 可滚动正文 */}
+              <div className="px-4 sm:px-6 py-4" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto' }}>
+                <div className="bg-white rounded-2xl border border-zinc-200 p-5 shadow-sm">
+                  <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{selected.message}</p>
+                </div>
+                {selected.read_at && (
+                  <p className="text-xs text-zinc-400 mt-3 flex items-center gap-1.5">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
+                    </svg>
+                    已读 · {fmt(selected.read_at)}
+                  </p>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
-
