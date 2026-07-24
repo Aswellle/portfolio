@@ -59,6 +59,16 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
     setSelected(c); markRead(c); setMobileView('detail');
   };
 
+  const applyFilter = (f: Filter) => {
+    setFilter(f);
+    const list = contacts.filter(c =>
+      f === 'unread' ? !c.read_at : f === 'starred' ? c.is_starred : true
+    );
+    const first = list[0] ?? null;
+    setSelected(first);
+    if (first && !first.read_at) markRead(first);
+  };
+
   const filtered = contacts.filter(c =>
     filter === 'unread' ? !c.read_at : filter === 'starred' ? c.is_starred : true
   );
@@ -70,7 +80,7 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
 
   /* ── Shared: detail pane content ─────────────── */
   const DetailPane = () => !selected ? (
-    <div className="flex flex-col items-center justify-center h-full text-zinc-400 gap-2 py-20">
+    <div className="flex flex-col items-center justify-center flex-1 text-zinc-400 gap-2">
       <svg className="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
           d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -78,37 +88,40 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
       <p className="text-sm">选择一条消息查看详情</p>
     </div>
   ) : (
-    <div className="max-w-2xl p-4 sm:p-6">
-      <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
+    <div className="flex flex-col flex-1 overflow-hidden">
+      {/* 固定头部：发件人信息 + 操作按钮 */}
+      <div className="flex items-start justify-between px-4 sm:px-6 py-4 border-b border-zinc-100 flex-shrink-0 flex-wrap gap-3">
         <div>
           <h3 className="text-base sm:text-lg font-semibold text-zinc-800">{selected.name}</h3>
           <a href={`mailto:${selected.email}`} className="text-sm text-blue-600 hover:underline break-all">{selected.email}</a>
           <p className="text-xs text-zinc-400 mt-1">{fmt(selected.created_at)}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button onClick={() => toggleStar(selected)}
             className={`px-3 py-2 rounded-xl text-xs font-medium border min-h-[44px] transition-all duration-150 ${
               selected.is_starred ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-white text-zinc-500 border-zinc-200'}`}>
             {selected.is_starred ? '★ 已加星' : '☆ 加星'}
           </button>
           <button onClick={() => del(selected.id)}
-            className="px-3 py-2 rounded-xl text-xs font-medium border border-red-200
-                       bg-red-50 text-red-600 min-h-[44px] transition-all duration-150">
+            className="px-3 py-2 rounded-xl text-xs font-medium border border-red-200 bg-red-50 text-red-600 min-h-[44px] transition-all duration-150">
             删除
           </button>
         </div>
       </div>
-      <div className="bg-white rounded-2xl border border-zinc-200 p-5 shadow-sm">
-        <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{selected.message}</p>
+      {/* 可滚动正文区 */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+        <div className="bg-white rounded-2xl border border-zinc-200 p-5 shadow-sm">
+          <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{selected.message}</p>
+        </div>
+        {selected.read_at && (
+          <p className="text-xs text-zinc-400 mt-3 flex items-center gap-1.5">
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
+            </svg>
+            已读 · {fmt(selected.read_at)}
+          </p>
+        )}
       </div>
-      {selected.read_at && (
-        <p className="text-xs text-zinc-400 mt-3 flex items-center gap-1.5">
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
-          </svg>
-          已读 · {fmt(selected.read_at)}
-        </p>
-      )}
     </div>
   );
 
@@ -169,9 +182,9 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
           )}
         </div>
         <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl">
-          <button onClick={() => setFilter('all')} className={tabCls(filter === 'all')}>全部 {contacts.length}</button>
-          <button onClick={() => setFilter('unread')} className={tabCls(filter === 'unread')}>未读 {unreadCount}</button>
-          <button onClick={() => setFilter('starred')} className={tabCls(filter === 'starred')}>
+          <button onClick={() => applyFilter('all')} className={tabCls(filter === 'all')}>全部 {contacts.length}</button>
+          <button onClick={() => applyFilter('unread')} className={tabCls(filter === 'unread')}>未读 {unreadCount}</button>
+          <button onClick={() => applyFilter('starred')} className={tabCls(filter === 'starred')}>
             ★ {contacts.filter(c => c.is_starred).length}
           </button>
         </div>
