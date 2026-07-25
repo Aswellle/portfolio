@@ -52,7 +52,7 @@ export const projects: Project[] = [
     langColor: '#F7DF1E',
     stars: 0,
     githubUrl: 'https://github.com/Aswellle/Pindou-Studio',
-    liveUrl: 'https://pin-bead-studio.vercel.app',
+    liveUrl: 'https://tangnotes.site',
     featured: true,
     badge: 'Live',
   },
