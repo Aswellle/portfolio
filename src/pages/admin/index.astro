@@ -13,11 +13,12 @@ import '../../styles/global.css';
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <style>
+    <style is:global>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       body { font-family: 'Noto Sans SC', system-ui, sans-serif; background: #f9fafb; }
       :focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; border-radius: 6px; }
-      html, body, #root { height: 100%; overflow: hidden; }
+      html, body { height: 100%; overflow: hidden; }
+      body > astro-island { display: block; height: 100%; }
       .admin-root { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
       .admin-body { display: flex; flex: 1 1 0; min-height: 0; overflow: hidden; }
       .admin-sidebar { display: none; }
