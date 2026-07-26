@@ -24,19 +24,29 @@ export default function ContactForm() {
     }
     setStatus('loading');
     setError('');
-    try {
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      const { error: dbError } = await supabase.from('contacts').insert([{
-        name: form.name.trim(),
-        email: form.email.trim(),
-        message: form.message.trim(),
-      }]);
-      if (dbError) throw dbError;
-      setStatus('success');
-      setForm({ name: '', email: '', message: '' });
-    } catch {
-      setStatus('error');
-      setError('发送失败，请稍后重试或通过 GitHub 联系我。');
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const payload = [{
+      name: form.name.trim(),
+      email: form.email.trim(),
+      message: form.message.trim(),
+    }];
+    // supabase-js only auto-retries idempotent methods (GET/HEAD/OPTIONS), so a
+    // transient network drop on this insert (status 0, request never reached
+    // the server) always surfaces as a failure even though nothing was wrong
+    // with the submission itself. Retry once before giving up.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { error: dbError, status } = await supabase.from('contacts').insert(payload);
+      if (!dbError) {
+        setStatus('success');
+        setForm({ name: '', email: '', message: '' });
+        return;
+      }
+      if (status !== 0 || attempt === 1) {
+        setStatus('error');
+        setError('发送失败，请稍后重试或通过 GitHub 联系我。');
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   };
 
