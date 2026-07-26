@@ -24,7 +24,14 @@ export default function ContactForm() {
     }
     setStatus('loading');
     setError('');
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Without this, createClient() derives its localStorage key from the
+    // Supabase project URL alone, so it's identical to the admin app's key.
+    // Anyone who has ever logged into /admin in this browser would have that
+    // session picked up here and sent as the request's identity instead of
+    // the anon key — and the anon-only insert policy then rejects it (403).
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+    });
     const payload = [{
       name: form.name.trim(),
       email: form.email.trim(),
