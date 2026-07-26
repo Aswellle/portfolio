@@ -124,7 +124,7 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
             </div>
           ) : filtered.map(c => (
             <button key={c.id} onClick={() => handleSelect(c)}
-              className={`w-full text-left px-4 py-4 border-b border-zinc-100 transition-all duration-150 active:bg-zinc-100 min-h-[72px]
+              className={`w-full shrink-0 text-left px-4 py-4 border-b border-zinc-100 transition-all duration-150 active:bg-zinc-100 min-h-[72px]
                 ${selected?.id === c.id ? 'bg-blue-50 border-l-2 border-l-blue-500' : 'hover:bg-zinc-50'}
                 ${!c.read_at ? 'bg-blue-50/40' : ''}`}>
               <div className="flex items-center justify-between mb-1">
