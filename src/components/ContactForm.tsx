@@ -82,7 +82,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="name" className="block text-xs text-zinc-500 mb-1.5 font-medium">称呼</label>

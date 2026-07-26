@@ -135,7 +135,7 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
               <div className="flex items-center gap-2">
                 {!c.read_at && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
                 {c.is_starred && <span className="text-amber-400 text-xs">★</span>}
-                <span className="text-xs text-zinc-400 truncate">{c.email}</span>
+                <span className="text-xs text-zinc-400">{c.email}</span>
               </div>
             </button>
           ))}
