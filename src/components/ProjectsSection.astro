@@ -34,8 +34,13 @@ import ProjectCard from './ProjectCard.astro';
 <script>
   // 星标数 / 仓库数实时刷新：经同源 Pages Function 代理 GitHub API。
   // 国内访问链路：浏览器 → /api/*（与站点同一 Cloudflare CDN）→ Cloudflare 边缘 → api.github.com，
-  // 避免浏览器直连 GitHub 的高延迟与不稳定。请求失败或超时时保留构建期静态值，静默降级。
+  // 避免浏览器直连 GitHub 的高延迟与不稳定。
+  // 节流：同一浏览器每 REFRESH_INTERVAL_MS 才重新拉取（localStorage 记录上次成功时间），
+  // 页面服务器端缓存上限 1 小时，客户端节流只减少重复请求。
+  // 请求失败或超时时保留构建期静态值，静默降级；成功后插入"更新于 HH:mm"时间戳（分钟精度）。
   const timeoutMs = 5000;
+  const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+  const STORAGE_KEY = 'portfolio-github-refresh-at';
 
   async function fetchJson(url: string): Promise<Record<string, unknown> | null> {
     const controller = new AbortController();
@@ -50,25 +55,73 @@ import ProjectCard from './ProjectCard.astro';
     }
   }
 
+  function shouldRefresh(): boolean {
+    try {
+      const last = Number(localStorage.getItem(STORAGE_KEY) || 0);
+      return !last || Date.now() - last >= REFRESH_INTERVAL_MS;
+    } catch {
+      return true;
+    }
+  }
+
+  function markRefreshed(): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(Date.now()));
+    } catch {
+      // localStorage 不可用（隐私模式等）时静默跳过，下次继续尝试
+    }
+  }
+
+  // 分钟精度：同日显示"更新于 14:26"，跨日显示"更新于 8月7日 14:26"
+  function formatUpdatedAt(iso: string): string {
+    const d = new Date(iso);
+    const now = new Date();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const time = `${hh}:${mm}`;
+    return d.toDateString() === now.toDateString()
+      ? `更新于 ${time}`
+      : `更新于 ${d.getMonth() + 1}月${d.getDate()}日 ${time}`;
+  }
+
+  const jobs: Array<Promise<boolean>> = [];
+
   // 更新有星的卡片（渲染时仅 stars > 0 的卡片带 data-stars-repo）
   document.querySelectorAll<HTMLElement>('[data-stars-repo]').forEach((el) => {
     const repo = el.dataset.starsRepo;
     if (!repo) return;
-    fetchJson(`/api/stars/${repo}`).then((data) => {
-      const stars = data && typeof data.stars === 'number' ? data.stars : null;
-      if (stars !== null) {
+    jobs.push(
+      fetchJson(`/api/stars/${repo}`).then((data) => {
+        if (!data || typeof data.stars !== 'number') return false;
         const valueEl = el.querySelector<HTMLElement>('[data-stars-value]');
-        if (valueEl) valueEl.textContent = String(stars);
-      }
-    });
+        if (valueEl) valueEl.textContent = String(data.stars);
+        if (typeof data.updatedAt === 'string') {
+          const ts = document.createElement('span');
+          ts.className = 'text-[10px] text-text-dim leading-none mt-0.5';
+          ts.textContent = formatUpdatedAt(data.updatedAt);
+          el.after(ts);
+        }
+        return true;
+      }),
+    );
   });
 
   // 更新"查看全部 N 个仓库"（仅统计非 fork 仓库，由 /api/profile 实时返回）
   const countEl = document.querySelector<HTMLElement>('[data-repo-count]');
   if (countEl) {
-    fetchJson('/api/profile').then((data) => {
-      const count = data && typeof data.nonForkRepos === 'number' ? data.nonForkRepos : null;
-      if (count !== null) countEl.textContent = String(count);
+    jobs.push(
+      fetchJson('/api/profile').then((data) => {
+        if (!data || typeof data.nonForkRepos !== 'number') return false;
+        countEl.textContent = String(data.nonForkRepos);
+        return true;
+      }),
+    );
+  }
+
+  if (shouldRefresh()) {
+    Promise.allSettled(jobs).then((results) => {
+      // 任一请求拿到真实数据即记一次刷新；全部失败不记，下个访问周期再试
+      if (results.some((r) => r.status === 'fulfilled' && r.value)) markRefreshed();
     });
   }
 </script>
