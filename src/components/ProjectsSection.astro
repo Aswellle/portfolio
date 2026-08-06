@@ -34,13 +34,26 @@ import ProjectCard from './ProjectCard.astro';
 <script>
   // 星标数 / 仓库数实时刷新：经同源 Pages Function 代理 GitHub API。
   // 国内访问链路：浏览器 → /api/*（与站点同一 Cloudflare CDN）→ Cloudflare 边缘 → api.github.com，
-  // 避免浏览器直连 GitHub 的高延迟与不稳定。
-  // 节流：同一浏览器每 REFRESH_INTERVAL_MS 才重新拉取（localStorage 记录上次成功时间），
-  // 页面服务器端缓存上限 1 小时，客户端节流只减少重复请求。
-  // 请求失败或超时时保留构建期静态值，静默降级；成功后插入"更新于 HH:mm"时间戳（分钟精度）。
+  // 避免浏览器直连 GitHub 的高延迟与不稳定。服务器端缓存上限 1 小时。
+  // 三层策略：
+  //  1. 每次进入立即渲染 localStorage 中上次成功拉取的缓存 → 刷新页面不丢星标数与"更新于"时间戳
+  //  2. 距上次成功拉取 ≥ REFRESH_INTERVAL_MS 才发起网络请求，成功后写入缓存
+  //  3. 页面停留期间每 CHECK_INTERVAL_MS（10 分钟）轻量检查一次到期情况，到期即拉取并原地更新显示
+  // 请求失败或超时时保留当前显示（缓存 > 构建期静态值），静默降级。
+  // 节流与服务器端对齐：Pages Function 的 caches.default 缓存 1 小时，客户端节流同为 1 小时 →
+  // 每次到期拉取恰好越过服务端缓存拿到 GitHub 新数据；单个浏览器每小时最多 4 个请求，
+  // 远低于 GitHub 匿名 API 限流（60 次/小时/IP），不会触发强制节流。
   const timeoutMs = 5000;
-  const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
-  const STORAGE_KEY = 'portfolio-github-refresh-at';
+  const REFRESH_INTERVAL_MS = 60 * 60 * 1000;
+  const CHECK_INTERVAL_MS = 10 * 60 * 1000;
+  const CACHE_KEY = 'portfolio-github-stars-cache';
+
+  interface GithubCache {
+    at: number; // 上次成功拉取时间戳
+    stars: Record<string, number>;
+    updatedAt: Record<string, string>;
+    nonForkRepos?: number;
+  }
 
   async function fetchJson(url: string): Promise<Record<string, unknown> | null> {
     const controller = new AbortController();
@@ -55,21 +68,28 @@ import ProjectCard from './ProjectCard.astro';
     }
   }
 
-  function shouldRefresh(): boolean {
+  function readCache(): GithubCache | null {
     try {
-      const last = Number(localStorage.getItem(STORAGE_KEY) || 0);
-      return !last || Date.now() - last >= REFRESH_INTERVAL_MS;
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Partial<GithubCache>;
+      if (!Number.isFinite(parsed.at) || !parsed.stars || !parsed.updatedAt) return null;
+      return parsed as GithubCache;
     } catch {
-      return true;
+      return null;
     }
   }
 
-  function markRefreshed(): void {
+  function writeCache(cache: GithubCache): void {
     try {
-      localStorage.setItem(STORAGE_KEY, String(Date.now()));
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
     } catch {
       // localStorage 不可用（隐私模式等）时静默跳过，下次继续尝试
     }
+  }
+
+  function shouldRefresh(at: number | undefined): boolean {
+    return !at || Date.now() - at >= REFRESH_INTERVAL_MS;
   }
 
   // 分钟精度：同日显示"更新于 14:26"，跨日显示"更新于 8月7日 14:26"
@@ -84,44 +104,105 @@ import ProjectCard from './ProjectCard.astro';
       : `更新于 ${d.getMonth() + 1}月${d.getDate()}日 ${time}`;
   }
 
-  const jobs: Array<Promise<boolean>> = [];
-
-  // 更新有星的卡片（渲染时仅 stars > 0 的卡片带 data-stars-repo）
+  // 收集有星卡片（渲染时仅 stars > 0 的卡片带 data-stars-repo）
+  const repoEls = new Map<string, HTMLElement>();
   document.querySelectorAll<HTMLElement>('[data-stars-repo]').forEach((el) => {
     const repo = el.dataset.starsRepo;
-    if (!repo) return;
-    jobs.push(
-      fetchJson(`/api/stars/${repo}`).then((data) => {
-        if (!data || typeof data.stars !== 'number') return false;
+    if (repo) repoEls.set(repo, el);
+  });
+  const countEl = document.querySelector<HTMLElement>('[data-repo-count]');
+
+  function applyCache(cache: GithubCache): void {
+    repoEls.forEach((el, repo) => {
+      const stars = cache.stars[repo];
+      if (typeof stars === 'number') {
         const valueEl = el.querySelector<HTMLElement>('[data-stars-value]');
-        if (valueEl) valueEl.textContent = String(data.stars);
-        if (typeof data.updatedAt === 'string') {
-          const ts = document.createElement('span');
+        if (valueEl) valueEl.textContent = String(stars);
+      }
+      const updatedAt = cache.updatedAt[repo];
+      if (updatedAt) {
+        let ts = el.parentElement?.querySelector<HTMLElement>('[data-stars-updated]');
+        if (!ts) {
+          ts = document.createElement('span');
           ts.className = 'text-[10px] text-text-dim leading-none mt-0.5';
-          ts.textContent = formatUpdatedAt(data.updatedAt);
+          ts.setAttribute('data-stars-updated', '');
           el.after(ts);
         }
-        return true;
-      }),
-    );
-  });
-
-  // 更新"查看全部 N 个仓库"（仅统计非 fork 仓库，由 /api/profile 实时返回）
-  const countEl = document.querySelector<HTMLElement>('[data-repo-count]');
-  if (countEl) {
-    jobs.push(
-      fetchJson('/api/profile').then((data) => {
-        if (!data || typeof data.nonForkRepos !== 'number') return false;
-        countEl.textContent = String(data.nonForkRepos);
-        return true;
-      }),
-    );
-  }
-
-  if (shouldRefresh()) {
-    Promise.allSettled(jobs).then((results) => {
-      // 任一请求拿到真实数据即记一次刷新；全部失败不记，下个访问周期再试
-      if (results.some((r) => r.status === 'fulfilled' && r.value)) markRefreshed();
+        ts.textContent = formatUpdatedAt(updatedAt);
+      }
     });
+    if (countEl && typeof cache.nonForkRepos === 'number') {
+      countEl.textContent = String(cache.nonForkRepos);
+    }
   }
+
+  // 拉取最新数据；至少一项成功才返回新缓存（失败项沿用旧缓存值，不覆盖）
+  async function fetchLatest(): Promise<GithubCache | null> {
+    const stars: Record<string, number> = {};
+    const updatedAt: Record<string, string> = {};
+    let ok = false;
+    const jobs = [...repoEls.keys()].map(async (repo) => {
+      const data = await fetchJson(`/api/stars/${repo}`);
+      if (data && typeof data.stars === 'number' && typeof data.updatedAt === 'string') {
+        stars[repo] = data.stars;
+        updatedAt[repo] = data.updatedAt;
+        ok = true;
+      }
+    });
+    let nonForkRepos: number | undefined;
+    if (countEl) {
+      jobs.push(
+        fetchJson('/api/profile').then((data) => {
+          if (data && typeof data.nonForkRepos === 'number') {
+            nonForkRepos = data.nonForkRepos;
+            ok = true;
+          }
+        }),
+      );
+    }
+    await Promise.all(jobs);
+    if (!ok) return null;
+    const old = readCache();
+    return {
+      at: Date.now(),
+      stars: { ...(old?.stars ?? {}), ...stars },
+      updatedAt: { ...(old?.updatedAt ?? {}), ...updatedAt },
+      nonForkRepos: nonForkRepos ?? old?.nonForkRepos,
+    };
+  }
+
+  let fetching = false;
+  function refreshIfDue(): void {
+    if (fetching) return;
+    const c = readCache();
+    if (!shouldRefresh(c?.at)) return;
+    fetching = true;
+    fetchLatest()
+      .then((fresh) => {
+        if (fresh) {
+          applyCache(fresh);
+          writeCache(fresh);
+        }
+      })
+      .finally(() => {
+        fetching = false;
+      });
+  }
+
+  // 清理旧版节流 key
+  try {
+    localStorage.removeItem('portfolio-github-refresh-at');
+  } catch {
+    // 忽略
+  }
+
+  // 1) 立即渲染上次成功拉取的缓存（若有）→ 刷新页面后星标数与时间戳不丢失
+  const cached = readCache();
+  if (cached) applyCache(cached);
+
+  // 2) 页面加载时：距上次成功拉取 ≥ 10 分钟则重新拉取
+  refreshIfDue();
+
+  // 3) 页面停留期间：每 10 秒检查一次到期情况，到期即拉取并原地更新显示
+  setInterval(refreshIfDue, CHECK_INTERVAL_MS);
 </script>
