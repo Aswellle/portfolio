@@ -28,6 +28,7 @@ This is a static Astro 4 portfolio site (`output: 'static'`) with Tailwind CSS a
 - `src/layouts/Layout.astro` imports `src/styles/global.css`, sets document metadata/OG tags, renders the shared `ScrollToTop.astro` component, and wires up an `IntersectionObserver` that toggles the `.reveal` → `.visible` scroll-in animation. Any public page should use this layout unless it needs a different document shell (see admin below).
 - `src/components/` holds mostly server-rendered `.astro` sections. The only hydrated exception on the public site is `Contact.astro`, which mounts `ContactForm.tsx` with `client:load`; `ContactForm.tsx` creates its own browser Supabase client at submission time and inserts into `public.contacts` (no client is shared with the rest of the page).
 - `src/data/projects.ts` is the single source of truth for portfolio project cards (`Project[]`) — `ProjectsSection.astro` maps that data through `ProjectCard.astro`. Add new projects here rather than editing the section markup.
+- Live GitHub data (star counts on cards, "查看全部 N 个仓库" count) is served by Cloudflare **Pages Functions** in `functions/`: `api/stars/[owner]/[repo].ts` and `api/profile.ts` proxy the GitHub API same-origin with Cache API caching. The browser hits `/api/*` on the site's own CDN (fast for domestic visitors) and the Cloudflare edge makes the upstream GitHub call — this chain is deliberate because direct `api.github.com` requests from Chinese residential networks are slow/unreliable. `project.stars` and the hardcoded repo count remain as static fallbacks; the client script in `ProjectsSection.astro` silently keeps them if the API is unreachable. These functions use the same-origin fallback pattern and are bundled automatically by `wrangler pages deploy`.
 
 ### Admin dashboard
 
@@ -48,6 +49,10 @@ This is a static Astro 4 portfolio site (`output: 'static'`) with Tailwind CSS a
 - The browser client reads `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`; copy `.env.example` to `.env` and set both values for contact and admin functionality. These are public client configuration values—do not use service-role credentials in frontend code.
 - The contact form inserts into `public.contacts`. `supabase/migrations/001_contacts.sql` creates the table, applies validation constraints, enables RLS, grants required Data API permissions, and allows anonymous inserts while restricting reads to authenticated users.
 - `supabase/migrations/002_admin_setup.sql` adds message-management fields and authenticated update/delete policies. Apply migrations in numeric order. Realtime delivery additionally requires adding `contacts` to the `supabase_realtime` publication as described in that migration.
+
+## Deployment
+
+- The site deploys to Cloudflare Pages under the project name `aswellle-portfolio`. Build with `npm run build` (outputs `dist/`), then deploy with `wrangler pages deploy dist --project-name aswellle-portfolio`. Use the `wrangler` CLI for Pages and the `gh` CLI for GitHub operations. The `functions/` directory (Pages Functions) is bundled into the same deployment automatically — no separate worker deploy step. Locally you can preview them with `npx wrangler pages dev dist`.
 
 ## Configuration
 

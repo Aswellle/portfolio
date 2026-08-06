@@ -23,3 +23,6 @@ Thumbs.db
 skills-lock.json
 design-system/
 .gstack/
+
+# wrangler local state
+.wrangler/
