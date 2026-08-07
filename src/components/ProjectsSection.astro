@@ -43,9 +43,13 @@ import ProjectCard from './ProjectCard.astro';
   // 节流与服务器端对齐：Pages Function 的 caches.default 缓存 1 小时，客户端节流同为 1 小时 →
   // 每次到期拉取恰好越过服务端缓存拿到 GitHub 新数据；单个浏览器每小时最多 4 个请求，
   // 远低于 GitHub 匿名 API 限流（60 次/小时/IP），不会触发强制节流。
+  // 失败重试：首次进入若拉取失败，以 30 秒间隔重试（最多 3 次），避免用户需要刷新页面；
+  //          页面重新获得焦点 / 网络恢复时也触发一次重试。
   const timeoutMs = 5000;
   const REFRESH_INTERVAL_MS = 60 * 60 * 1000;
   const CHECK_INTERVAL_MS = 10 * 60 * 1000;
+  const RETRY_INTERVAL_MS = 30 * 1000;
+  const MAX_RETRIES = 3;
   const CACHE_KEY = 'portfolio-github-stars-cache';
 
   interface GithubCache {
@@ -172,6 +176,16 @@ import ProjectCard from './ProjectCard.astro';
   }
 
   let fetching = false;
+  let retryCount = 0;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function clearRetryTimer(): void {
+    if (retryTimer !== null) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
+    }
+  }
+
   function refreshIfDue(): void {
     if (fetching) return;
     const c = readCache();
@@ -180,8 +194,33 @@ import ProjectCard from './ProjectCard.astro';
     fetchLatest()
       .then((fresh) => {
         if (fresh) {
+          retryCount = 0;
+          clearRetryTimer();
           applyCache(fresh);
           writeCache(fresh);
+        } else if (retryCount < MAX_RETRIES) {
+          // 拉取失败且未达重试上限 → 30 秒后重试
+          retryCount++;
+          clearRetryTimer();
+          retryTimer = setTimeout(() => {
+            fetching = false;
+            refreshIfDue();
+          }, RETRY_INTERVAL_MS);
+        } else {
+          // 已达重试上限 → 放弃，等下次页面加载或焦点恢复
+          retryCount = 0;
+        }
+      })
+      .catch(() => {
+        if (retryCount < MAX_RETRIES) {
+          retryCount++;
+          clearRetryTimer();
+          retryTimer = setTimeout(() => {
+            fetching = false;
+            refreshIfDue();
+          }, RETRY_INTERVAL_MS);
+        } else {
+          retryCount = 0;
         }
       })
       .finally(() => {
@@ -200,9 +239,27 @@ import ProjectCard from './ProjectCard.astro';
   const cached = readCache();
   if (cached) applyCache(cached);
 
-  // 2) 页面加载时：距上次成功拉取 ≥ 10 分钟则重新拉取
+  // 2) 页面加载时：距上次成功拉取 ≥ 1 小时则重新拉取（失败会按 30 秒间隔重试）
   refreshIfDue();
 
-  // 3) 页面停留期间：每 10 秒检查一次到期情况，到期即拉取并原地更新显示
+  // 3) 页面停留期间：每 10 分钟检查一次到期情况，到期即拉取并原地更新显示
   setInterval(refreshIfDue, CHECK_INTERVAL_MS);
+
+  // 4) 页面重新获得焦点时尝试一次拉取（从后台切回前台、切换标签后等场景）
+  window.addEventListener('focus', refreshIfDue);
+  // 网络恢复时尝试一次拉取（移动网络断续、切换 WiFi 等场景）
+  window.addEventListener('online', refreshIfDue);
+
+  // 移动端（无 hover 设备）点按卡片：显示与桌面悬停一致的常驻反馈（左侧渐变边线 + 标题变色）。
+  // 同一时刻至多一张卡片保持高亮；再次点按该卡片或点按页面其他位置即清除。
+  // 桌面设备不挂载此逻辑（matchMedia 门控），视觉规则由 CSS 侧 @media (hover:none) 兜底。
+  if (window.matchMedia('(hover: none)').matches) {
+    const cards = document.querySelectorAll<HTMLElement>('.project-card');
+    document.addEventListener('click', (e) => {
+      const card = (e.target as HTMLElement).closest<HTMLElement>('.project-card');
+      const keepTapped = card?.classList.contains('card-tapped') ? false : Boolean(card);
+      cards.forEach((c) => c.classList.remove('card-tapped'));
+      if (keepTapped && card) card.classList.add('card-tapped');
+    });
+  }
 </script>

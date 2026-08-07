@@ -9,15 +9,17 @@ const githubRepo = project.githubUrl.replace(/^https:\/\/github\.com\//, '');
 ---
 
 <article
-  class="bento-card reveal relative flex flex-col h-full cursor-pointer group"
+  class="bento-card reveal relative flex flex-col h-full cursor-pointer group project-card"
   style={`transition-delay:${delay}`}
 >
   <!-- 左侧渐变竖线条：
        桌面（hover 设备）→ group-hover 悬停显示；
-       移动端（无 hover）→ group-active 按压显示、松手淡出，不产生粘滞 hover -->
+       移动端（无 hover）→ 点击卡片后常驻显示（card-tapped 类由点击事件驱动，
+       再点一下或点页面其他位置即清除） -->
   <div class="absolute left-0 inset-y-0 w-1 bg-gradient-to-b from-accent to-accent-purple
               opacity-0 [@media(hover:hover)]:group-hover:opacity-100
-              [@media(hover:none)]:group-active:opacity-100 transition-opacity duration-300 rounded-l-3xl"
+              [@media(hover:none)]:group-[.card-tapped]:opacity-100
+              transition-opacity duration-300 rounded-l-3xl"
        aria-hidden="true"></div>
 
   <div class="p-6 flex flex-col flex-1">
@@ -27,7 +29,7 @@ const githubRepo = project.githubUrl.replace(/^https:\/\/github\.com\//, '');
         <div class="flex items-center gap-2 flex-wrap">
           <h3 class="font-semibold text-text text-base leading-tight
               [@media(hover:hover)]:group-hover:text-accent
-              [@media(hover:none)]:group-active:text-accent transition-colors duration-200">
+              [@media(hover:none)]:group-[.card-tapped]:text-accent transition-colors duration-200">
             {project.name}
           </h3>
           {project.nameZh && (
