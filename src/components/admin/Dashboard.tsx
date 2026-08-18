@@ -5,7 +5,7 @@ import MessagesPanel from './MessagesPanel';
 type Tab = 'messages';
 
 export default function Dashboard({ supabase }: { supabase: SupabaseClient }) {
-  const [tab] = useState<Tab>('messages');
+  const [tab, setTab] = useState<Tab>('messages');
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -39,6 +39,7 @@ export default function Dashboard({ supabase }: { supabase: SupabaseClient }) {
         <aside className="admin-sidebar w-48 bg-white border-r border-zinc-200 p-3 shrink-0">
           <nav className="space-y-1">
             <button
+              onClick={() => setTab('messages')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm
                          font-medium transition-all duration-150
                          ${tab === 'messages'

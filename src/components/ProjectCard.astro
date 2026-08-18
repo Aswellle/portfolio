@@ -36,26 +36,30 @@ const githubRepo = project.githubUrl.replace(/^https:\/\/github\.com\//, '');
             <span class="text-xs text-text-muted font-mono">{project.nameZh}</span>
           )}
         </div>
-        {project.badge && (
-          <span class={`mt-1.5 inline-block text-xs font-medium px-2 py-0.5 rounded-full
-            ${project.badge === 'Live'    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-            : project.badge === 'Flagship' ? 'bg-blue-50 text-blue-600 border border-blue-200'
-            :                               'bg-amber-50 text-amber-600 border border-amber-200'}`}>
-            {project.badge === 'Live' ? '🟢 已部署' : project.badge === 'Flagship' ? '⭐ 主项目' : '✨ 新'}
-          </span>
+        {project.badges && (
+          <div class="mt-1.5 flex items-center gap-1.5 flex-wrap">
+            {project.badges.map((b) => (
+              <span class={`inline-block text-xs font-medium px-2 py-0.5 rounded-full
+                ${b === 'Live'    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                : b === 'Flagship' ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                :                   'bg-amber-50 text-amber-600 border border-amber-200'}`}>
+                {b === 'Live' ? '🟢 已部署' : b === 'Flagship' ? '⭐ 主项目' : '✨ 新'}
+              </span>
+            ))}
+          </div>
         )}
       </div>
-      {project.stars > 0 && (
-        <div class="flex flex-col items-end gap-1 flex-shrink-0">
-          <span data-stars-repo={githubRepo}
-                class="flex items-center gap-1 text-xs text-text-dim bg-bg-elevated px-2 py-1 rounded-lg">
-            <!-- 星标图标：与"主项目"徽章一致的 ⭐ 表情（用户指定视觉） -->
-            <span aria-hidden="true">⭐</span>
-            <span data-stars-value>{project.stars}</span>
-          </span>
-          <!-- 更新时间戳由客户端脚本在取到实时数据后插入（分钟精度） -->
-        </div>
-      )}
+      <!-- 所有卡片都显示星标徽章（见 ProjectsSection.astro 脚本）：
+           0 星项目徽章照常显示，仅不显示星标数字（表示星标数为 0） -->
+      <div class="flex flex-col items-end gap-1 flex-shrink-0">
+        <span data-stars-repo={githubRepo}
+              class="flex items-center gap-1 text-xs text-text-dim bg-bg-elevated px-2 py-1 rounded-lg">
+          <!-- 星标图标：与"主项目"徽章一致的 ⭐ 表情（用户指定视觉） -->
+          <span aria-hidden="true">⭐</span>
+          <span data-stars-value class={project.stars > 0 ? '' : 'hidden'}>{project.stars > 0 ? project.stars : ''}</span>
+        </span>
+        <!-- 更新时间戳由客户端脚本在取到实时数据后插入（分钟精度） -->
+      </div>
     </div>
 
     <!-- 短描述（副标题：比项目名略小的斜体，增强显示度） -->

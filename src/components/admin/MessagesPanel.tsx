@@ -17,7 +17,12 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
   const [selected, setSelected] = useState<Contact | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
   const [loading, setLoading] = useState(true);
-  const [mobileView, setMobileView] = useState<MobileView>('list');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  const showToast = (type: 'success' | 'error', msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const load = useCallback(async () => {
     const { data } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
@@ -36,23 +41,35 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
   const markRead = async (c: Contact) => {
     if (c.read_at) return;
     const ts = new Date().toISOString();
-    await supabase.from('contacts').update({ read_at: ts }).eq('id', c.id);
-    setContacts(p => p.map(x => x.id === c.id ? { ...x, read_at: ts } : x));
-    setSelected(p => p?.id === c.id ? { ...p, read_at: ts } : p);
+    try {
+      await supabase.from('contacts').update({ read_at: ts }).eq('id', c.id);
+      setContacts(p => p.map(x => x.id === c.id ? { ...x, read_at: ts } : x));
+      setSelected(p => p?.id === c.id ? { ...p, read_at: ts } : p);
+    } catch {
+      showToast('error', '标记已读失败，请重试');
+    }
   };
 
   const toggleStar = async (c: Contact) => {
     const next = !c.is_starred;
-    await supabase.from('contacts').update({ is_starred: next }).eq('id', c.id);
-    setContacts(p => p.map(x => x.id === c.id ? { ...x, is_starred: next } : x));
-    setSelected(p => p?.id === c.id ? { ...p, is_starred: next } : p);
+    try {
+      await supabase.from('contacts').update({ is_starred: next }).eq('id', c.id);
+      setContacts(p => p.map(x => x.id === c.id ? { ...x, is_starred: next } : x));
+      setSelected(p => p?.id === c.id ? { ...p, is_starred: next } : p);
+    } catch {
+      showToast('error', '操作失败，请重试');
+    }
   };
 
   const del = async (id: string) => {
     if (!confirm('确认删除这条消息？')) return;
-    await supabase.from('contacts').delete().eq('id', id);
-    setContacts(p => p.filter(x => x.id !== id));
-    if (selected?.id === id) { setSelected(null); setMobileView('list'); }
+    try {
+      await supabase.from('contacts').delete().eq('id', id);
+      setContacts(p => p.filter(x => x.id !== id));
+      if (selected?.id === id) { setSelected(null); setMobileView('list'); }
+    } catch {
+      showToast('error', '删除失败，请重试');
+    }
   };
 
   const handleSelect = (c: Contact) => {
@@ -188,6 +205,14 @@ export default function MessagesPanel({ supabase }: { supabase: SupabaseClient }
           )}
         </div>
       </div>
+      {/* Toast 通知 */}
+      {toast && (
+        <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm font-medium shadow-lg z-50 ${
+          toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+        }`}>
+          {toast.msg}
+        </div>
+      )}
     </div>
   );
 }

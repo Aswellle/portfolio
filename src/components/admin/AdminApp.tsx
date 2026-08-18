@@ -16,7 +16,7 @@ export default function AdminApp() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setState(session ? 'in' : 'out');
-    });
+    }).catch(() => setState('out'));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setState(session ? 'in' : 'out');
     });

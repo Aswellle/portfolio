@@ -33,3 +33,9 @@ create policy "authenticated_can_read_contacts"
   on public.contacts for select
   to authenticated
   using (true);
+
+-- 安全注意：当前策略允许任意频率的匿名插入。
+-- 如果遇到垃圾信息投递，建议：
+-- 1. 在 ContactForm 中添加 Cloudflare Turnstile CAPTCHA
+-- 2. 或在 Supabase Edge Function 中实现基于 IP 的速率限制
+-- 3. 或添加 CHECK 约束限制同一邮箱的插入频率

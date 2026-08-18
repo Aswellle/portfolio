@@ -6,9 +6,9 @@ const navLinks = [
 ];
 ---
 
-<header class="site-header fixed top-0 inset-x-0 z-50">
+<header class="site-header fixed top-0 inset-x-0 z-50
+               bg-white/90 backdrop-blur-md border-b border-border">
   <nav class="px-5 py-3.5 flex items-center justify-between
-              bg-white/90 backdrop-blur-md border-b border-border
               max-w-5xl mx-auto"
        aria-label="主导航">
 
@@ -93,6 +93,9 @@ const navLinks = [
       (bars[1] as HTMLElement).style.opacity = '0';
       (bars[2] as HTMLElement).style.transform = 'translateY(-8px) rotate(-45deg)';
     }
+    // 焦点陷阱：将焦点移到抽屉内第一个可聚焦元素
+    const firstFocusable = drawer?.querySelector<HTMLElement>('a[href]');
+    firstFocusable?.focus();
   }
 
   function closeMenu() {
@@ -121,6 +124,30 @@ const navLinks = [
         && !toggle.contains(e.target as Node)
         && !drawer?.contains(e.target as Node)) {
       closeMenu();
+    }
+  });
+
+  // Escape 键关闭抽屉
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
+      closeMenu();
+      toggle?.focus();
+    }
+  });
+
+  // 焦点陷阱：在抽屉内循环 Tab 焦点
+  drawer?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const focusable = drawer.querySelectorAll<HTMLElement>('a[href], button:not([disabled])');
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
     }
   });
 </script>

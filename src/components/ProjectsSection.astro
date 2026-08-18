@@ -35,28 +35,22 @@ import ProjectCard from './ProjectCard.astro';
   // 星标数 / 仓库数实时刷新：经同源 Pages Function 代理 GitHub API。
   // 国内访问链路：浏览器 → /api/*（与站点同一 Cloudflare CDN）→ Cloudflare 边缘 → api.github.com，
   // 避免浏览器直连 GitHub 的高延迟与不稳定。服务器端缓存上限 1 小时。
-  // 三层策略：
-  //  1. 每次进入立即渲染 localStorage 中上次成功拉取的缓存 → 刷新页面不丢星标数与"更新于"时间戳
-  //  2. 距上次成功拉取 ≥ REFRESH_INTERVAL_MS 才发起网络请求，成功后写入缓存
-  //  3. 页面停留期间每 CHECK_INTERVAL_MS（10 分钟）轻量检查一次到期情况，到期即拉取并原地更新显示
-  // 请求失败或超时时保留当前显示（缓存 > 构建期静态值），静默降级。
-  // 节流与服务器端对齐：Pages Function 的 caches.default 缓存 1 小时，客户端节流同为 1 小时 →
-  // 每次到期拉取恰好越过服务端缓存拿到 GitHub 新数据；单个浏览器每小时最多 4 个请求，
-  // 远低于 GitHub 匿名 API 限流（60 次/小时/IP），不会触发强制节流。
-  // 失败重试：首次进入若拉取失败，以 30 秒间隔重试（最多 3 次），避免用户需要刷新页面；
-  //          页面重新获得焦点 / 网络恢复时也触发一次重试。
+  // 每次进入都向同源 Pages Function 请求最新数据（请求基本命中 CDN 缓存，不消耗 GitHub 配额）；
+  // 与本地缓存按 updatedAt 取新合并，跨设备收敛到服务器上"最近一次更新 GitHub 数据"的版本。
+  // 显示规则：所有项目卡片都显示星标徽章；取到 ≥1 星时显示星标数字并持续更新，0 星不显示数字。
+  // 失败重试：拉取失败以 30 秒间隔重试（最多 3 次）；页面重新获得焦点 / 网络恢复时也触发一次重试。
   const timeoutMs = 5000;
-  const REFRESH_INTERVAL_MS = 60 * 60 * 1000;
-  const CHECK_INTERVAL_MS = 10 * 60 * 1000;
+  const CHECK_INTERVAL_MS = 10 * 60 * 1000; // 页面停留期间每 10 分钟刷新一次
   const RETRY_INTERVAL_MS = 30 * 1000;
   const MAX_RETRIES = 3;
   const CACHE_KEY = 'portfolio-github-stars-cache';
 
   interface GithubCache {
-    at: number; // 上次成功拉取时间戳
+    at: number; // 最近一次成功同步的本地时间戳（元数据）
     stars: Record<string, number>;
     updatedAt: Record<string, string>;
     nonForkRepos?: number;
+    nonForkReposUpdatedAt?: string;
   }
 
   async function fetchJson(url: string): Promise<Record<string, unknown> | null> {
@@ -92,10 +86,6 @@ import ProjectCard from './ProjectCard.astro';
     }
   }
 
-  function shouldRefresh(at: number | undefined): boolean {
-    return !at || Date.now() - at >= REFRESH_INTERVAL_MS;
-  }
-
   // 分钟精度：同日显示"更新于 14:26"，跨日显示"更新于 8月7日 14:26"
   function formatUpdatedAt(iso: string): string {
     const d = new Date(iso);
@@ -108,7 +98,7 @@ import ProjectCard from './ProjectCard.astro';
       : `更新于 ${d.getMonth() + 1}月${d.getDate()}日 ${time}`;
   }
 
-  // 收集有星卡片（渲染时仅 stars > 0 的卡片带 data-stars-repo）
+  // 收集所有项目卡片（每张卡片都带 data-stars-repo；徽章始终显示，0 星时仅数字隐藏）
   const repoEls = new Map<string, HTMLElement>();
   document.querySelectorAll<HTMLElement>('[data-stars-repo]').forEach((el) => {
     const repo = el.dataset.starsRepo;
@@ -121,7 +111,16 @@ import ProjectCard from './ProjectCard.astro';
       const stars = cache.stars[repo];
       if (typeof stars === 'number') {
         const valueEl = el.querySelector<HTMLElement>('[data-stars-value]');
-        if (valueEl) valueEl.textContent = String(stars);
+        if (valueEl) {
+          if (stars >= 1) {
+            valueEl.textContent = String(stars);
+            valueEl.classList.remove('hidden');
+          } else {
+            // 0 星：徽章照常显示，仅不显示星标数字
+            valueEl.textContent = '';
+            valueEl.classList.add('hidden');
+          }
+        }
       }
       const updatedAt = cache.updatedAt[repo];
       if (updatedAt) {
@@ -140,25 +139,28 @@ import ProjectCard from './ProjectCard.astro';
     }
   }
 
-  // 拉取最新数据；至少一项成功才返回新缓存（失败项沿用旧缓存值，不覆盖）
+  // 拉取最新数据；至少一项成功才返回新缓存。跨设备按 updatedAt 取新合并（本地缓存 vs 服务器），
+  // 保证各设备都收敛到"最近一次更新 GitHub 数据的版本"。
   async function fetchLatest(): Promise<GithubCache | null> {
-    const stars: Record<string, number> = {};
-    const updatedAt: Record<string, string> = {};
+    const freshStars: Record<string, number> = {};
+    const freshUpdatedAt: Record<string, string> = {};
     let ok = false;
     const jobs = [...repoEls.keys()].map(async (repo) => {
       const data = await fetchJson(`/api/stars/${repo}`);
       if (data && typeof data.stars === 'number' && typeof data.updatedAt === 'string') {
-        stars[repo] = data.stars;
-        updatedAt[repo] = data.updatedAt;
+        freshStars[repo] = data.stars;
+        freshUpdatedAt[repo] = data.updatedAt;
         ok = true;
       }
     });
     let nonForkRepos: number | undefined;
+    let nonForkReposUpdatedAt: string | undefined;
     if (countEl) {
       jobs.push(
         fetchJson('/api/profile').then((data) => {
-          if (data && typeof data.nonForkRepos === 'number') {
+          if (data && typeof data.nonForkRepos === 'number' && typeof data.updatedAt === 'string') {
             nonForkRepos = data.nonForkRepos;
+            nonForkReposUpdatedAt = data.updatedAt;
             ok = true;
           }
         }),
@@ -166,13 +168,35 @@ import ProjectCard from './ProjectCard.astro';
     }
     await Promise.all(jobs);
     if (!ok) return null;
+
     const old = readCache();
-    return {
-      at: Date.now(),
-      stars: { ...(old?.stars ?? {}), ...stars },
-      updatedAt: { ...(old?.updatedAt ?? {}), ...updatedAt },
-      nonForkRepos: nonForkRepos ?? old?.nonForkRepos,
-    };
+    const merged: GithubCache = { at: Date.now(), stars: {}, updatedAt: {} };
+
+    // 每个 repo 取 updatedAt 更新的来源；本次未取到（如接口失败）的 repo 沿用旧缓存值
+    for (const repo of new Set([...Object.keys(old?.stars ?? {}), ...Object.keys(freshStars)])) {
+      const oldTs = old?.updatedAt[repo];
+      const newTs = freshUpdatedAt[repo];
+      if (newTs !== undefined && (!oldTs || Date.parse(newTs) >= Date.parse(oldTs))) {
+        merged.stars[repo] = freshStars[repo];
+        merged.updatedAt[repo] = newTs;
+      } else if (old && oldTs !== undefined) {
+        merged.stars[repo] = old.stars[repo];
+        merged.updatedAt[repo] = oldTs;
+      }
+    }
+
+    // 仓库总数同理按 updatedAt 取新合并
+    const oldProfileTs = old?.nonForkReposUpdatedAt;
+    if (nonForkRepos !== undefined && nonForkReposUpdatedAt !== undefined
+        && (!oldProfileTs || Date.parse(nonForkReposUpdatedAt) >= Date.parse(oldProfileTs))) {
+      merged.nonForkRepos = nonForkRepos;
+      merged.nonForkReposUpdatedAt = nonForkReposUpdatedAt;
+    } else if (old) {
+      merged.nonForkRepos = old.nonForkRepos;
+      merged.nonForkReposUpdatedAt = old.nonForkReposUpdatedAt;
+    }
+
+    return merged;
   }
 
   let fetching = false;
@@ -186,10 +210,19 @@ import ProjectCard from './ProjectCard.astro';
     }
   }
 
-  function refreshIfDue(): void {
+  function scheduleRetry(): void {
+    if (retryCount >= MAX_RETRIES) {
+      // 已达重试上限 → 放弃，等下次页面加载 / 焦点恢复 / 定时检查再试
+      retryCount = 0;
+      return;
+    }
+    retryCount++;
+    clearRetryTimer();
+    retryTimer = setTimeout(refresh, RETRY_INTERVAL_MS);
+  }
+
+  function refresh(): void {
     if (fetching) return;
-    const c = readCache();
-    if (!shouldRefresh(c?.at)) return;
     fetching = true;
     fetchLatest()
       .then((fresh) => {
@@ -198,31 +231,11 @@ import ProjectCard from './ProjectCard.astro';
           clearRetryTimer();
           applyCache(fresh);
           writeCache(fresh);
-        } else if (retryCount < MAX_RETRIES) {
-          // 拉取失败且未达重试上限 → 30 秒后重试
-          retryCount++;
-          clearRetryTimer();
-          retryTimer = setTimeout(() => {
-            fetching = false;
-            refreshIfDue();
-          }, RETRY_INTERVAL_MS);
         } else {
-          // 已达重试上限 → 放弃，等下次页面加载或焦点恢复
-          retryCount = 0;
+          scheduleRetry();
         }
       })
-      .catch(() => {
-        if (retryCount < MAX_RETRIES) {
-          retryCount++;
-          clearRetryTimer();
-          retryTimer = setTimeout(() => {
-            fetching = false;
-            refreshIfDue();
-          }, RETRY_INTERVAL_MS);
-        } else {
-          retryCount = 0;
-        }
-      })
+      .catch(scheduleRetry)
       .finally(() => {
         fetching = false;
       });
@@ -235,20 +248,20 @@ import ProjectCard from './ProjectCard.astro';
     // 忽略
   }
 
-  // 1) 立即渲染上次成功拉取的缓存（若有）→ 刷新页面后星标数与时间戳不丢失
+  // 1) 立即渲染本地缓存（若有）→ 首屏不闪空；最新数据随后由 refresh() 从服务器取新合并
   const cached = readCache();
   if (cached) applyCache(cached);
 
-  // 2) 页面加载时：距上次成功拉取 ≥ 1 小时则重新拉取（失败会按 30 秒间隔重试）
-  refreshIfDue();
+  // 2) 每次进入都请求最新数据（请求基本命中 CDN 缓存；跨设备按 updatedAt 取新合并）
+  refresh();
 
-  // 3) 页面停留期间：每 10 分钟检查一次到期情况，到期即拉取并原地更新显示
-  setInterval(refreshIfDue, CHECK_INTERVAL_MS);
+  // 3) 页面停留期间每 10 分钟刷新一次
+  setInterval(refresh, CHECK_INTERVAL_MS);
 
-  // 4) 页面重新获得焦点时尝试一次拉取（从后台切回前台、切换标签后等场景）
-  window.addEventListener('focus', refreshIfDue);
-  // 网络恢复时尝试一次拉取（移动网络断续、切换 WiFi 等场景）
-  window.addEventListener('online', refreshIfDue);
+  // 4) 页面重新获得焦点时刷新（从后台切回前台、切换标签后等场景）
+  window.addEventListener('focus', refresh);
+  // 网络恢复时刷新（移动网络断续、切换 WiFi 等场景）
+  window.addEventListener('online', refresh);
 
   // 移动端（无 hover 设备）点按卡片：显示与桌面悬停一致的常驻反馈（左侧渐变边线 + 标题变色）。
   // 同一时刻至多一张卡片保持高亮；再次点按该卡片或点按页面其他位置即清除。

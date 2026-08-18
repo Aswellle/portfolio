@@ -1,3 +1,5 @@
+export type Badge = 'Live' | 'Flagship' | 'New';
+
 export interface Project {
   id: string;
   name: string;
@@ -11,7 +13,7 @@ export interface Project {
   githubUrl: string;
   liveUrl?: string;
   featured?: boolean;
-  badge?: string;
+  badges?: Badge[];
 }
 
 export const projects: Project[] = [
@@ -28,7 +30,7 @@ export const projects: Project[] = [
     githubUrl: 'https://github.com/Aswellle/Pindou-Studio',
     liveUrl: 'https://tangnotes.site',
     featured: true,
-    badge: 'Live',
+    badges: ['Live', 'Flagship'],
   },
   {
     id: '2image',
@@ -62,8 +64,8 @@ export const projects: Project[] = [
     lang: 'Rust',
     langColor: '#CE422B',
     stars: 0,
-    githubUrl: 'https://github.com/Aswellle/LightAblum',
-    badge: 'New',
+    githubUrl: 'https://github.com/Aswellle/LightAlbum',
+    badges: ['New'],
   },
   {
     id: 'remotebridge',
@@ -88,6 +90,6 @@ export const projects: Project[] = [
     stars: 1,
     githubUrl: 'https://github.com/Aswellle/QiLing-Agentic-Coding',
     featured: true,
-    badge: 'Flagship',
+    badges: ['Flagship'],
   },
 ];
