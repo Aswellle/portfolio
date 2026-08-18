@@ -96,12 +96,12 @@ export default function LoginForm({ supabase }: { supabase: SupabaseClient }) {
           <div className="mt-4 text-center">
             {mode === 'login' ? (
               <button onClick={() => { setMode('reset'); setError(''); setPassword(''); }}
-                className="text-xs text-zinc-400 hover:text-blue-600 transition-colors">
+                className="text-sm text-blue-600 hover:text-blue-500 hover:underline transition-colors font-medium">
                 忘记密码？
               </button>
             ) : (
               <button onClick={() => { setMode('login'); setError(''); }}
-                className="text-xs text-zinc-400 hover:text-blue-600 transition-colors">
+                className="text-sm text-blue-600 hover:text-blue-500 hover:underline transition-colors font-medium">
                 ← 返回登录
               </button>
             )}
